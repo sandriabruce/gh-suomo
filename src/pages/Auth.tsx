@@ -63,7 +63,7 @@ export default function AuthPage() {
           <Logo size="lg" />
         </Link>
         <Card className="rounded-3xl border-2 p-6 shadow-warm">
-          <h2 className="font-display text-2xl font-bold text-ghana-brown">
+          <h2 className="heading-gold font-display text-2xl font-bold">
             {mode === "signup" ? "Create your account" : "Welcome back"}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
