@@ -63,7 +63,7 @@ export default function AuthPage() {
           <Logo size="lg" />
         </Link>
         <Card className="rounded-3xl border-2 p-6 shadow-warm">
-          <h2 className="font-display text-2xl font-bold text-ghana-brown">
+          <h2 className="heading-gold font-display text-2xl font-bold">
             {mode === "signup" ? "Create your account" : "Welcome back"}
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -84,7 +84,7 @@ export default function AuthPage() {
               <Label htmlFor="pw">Password</Label>
               <Input id="pw" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 8 characters" required />
             </div>
-            <Button type="submit" disabled={busy} className="w-full bg-ghana-green text-primary-foreground hover:bg-ghana-green/90 rounded-full h-11">
+            <Button type="submit" disabled={busy} className="w-full bg-ghana-gold text-ghana-brown hover:bg-ghana-gold/90 rounded-full h-11">
               {busy ? "Please wait…" : mode === "signup" ? "Create account" : "Sign in"}
             </Button>
           </form>
