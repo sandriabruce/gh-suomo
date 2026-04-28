@@ -14,32 +14,38 @@ const symbols = [
   { src: abii, size: 68 },
 ];
 
-// Hand-tuned scattered positions — each of the 6 symbols appears 3 times (18 total per tile).
+// Hand-tuned scattered positions — each of the 6 symbols appears 4 times (24 total per tile).
 const spots: { top: string; left: string; i: number; rot: number }[] = [
   // dwennimmen (0)
-  { top: "4%",  left: "10%", i: 0, rot: -8 },
-  { top: "46%", left: "52%", i: 0, rot: 14 },
-  { top: "82%", left: "18%", i: 0, rot: -22 },
+  { top: "3%",  left: "8%",  i: 0, rot: -8 },
+  { top: "28%", left: "46%", i: 0, rot: 14 },
+  { top: "62%", left: "14%", i: 0, rot: -22 },
+  { top: "88%", left: "76%", i: 0, rot: 4 },
   // sankofa (1)
-  { top: "18%", left: "72%", i: 1, rot: 10 },
-  { top: "54%", left: "8%",  i: 1, rot: -12 },
-  { top: "90%", left: "64%", i: 1, rot: 20 },
+  { top: "14%", left: "70%", i: 1, rot: 10 },
+  { top: "38%", left: "18%", i: 1, rot: -12 },
+  { top: "66%", left: "56%", i: 1, rot: 20 },
+  { top: "92%", left: "32%", i: 1, rot: -6 },
   // hinmeisee (2)
-  { top: "10%", left: "40%", i: 2, rot: 12 },
-  { top: "40%", left: "84%", i: 2, rot: -16 },
-  { top: "74%", left: "44%", i: 2, rot: 6 },
+  { top: "6%",  left: "36%", i: 2, rot: 12 },
+  { top: "30%", left: "82%", i: 2, rot: -16 },
+  { top: "54%", left: "40%", i: 2, rot: 6 },
+  { top: "78%", left: "6%",  i: 2, rot: -20 },
   // atswa (3)
-  { top: "26%", left: "24%", i: 3, rot: 18 },
-  { top: "60%", left: "70%", i: 3, rot: -10 },
-  { top: "94%", left: "4%",  i: 3, rot: 22 },
+  { top: "20%", left: "24%", i: 3, rot: 18 },
+  { top: "44%", left: "62%", i: 3, rot: -10 },
+  { top: "70%", left: "88%", i: 3, rot: 22 },
+  { top: "96%", left: "50%", i: 3, rot: -14 },
   // atoobi (4)
-  { top: "8%",  left: "88%", i: 4, rot: -14 },
-  { top: "34%", left: "4%",  i: 4, rot: 8 },
-  { top: "68%", left: "30%", i: 4, rot: -18 },
+  { top: "2%",  left: "58%", i: 4, rot: -14 },
+  { top: "24%", left: "4%",  i: 4, rot: 8 },
+  { top: "50%", left: "76%", i: 4, rot: -18 },
+  { top: "82%", left: "42%", i: 4, rot: 12 },
   // abii (5)
-  { top: "22%", left: "58%", i: 5, rot: -6 },
-  { top: "56%", left: "36%", i: 5, rot: 16 },
-  { top: "86%", left: "86%", i: 5, rot: -4 },
+  { top: "10%", left: "90%", i: 5, rot: -6 },
+  { top: "36%", left: "34%", i: 5, rot: 16 },
+  { top: "58%", left: "2%",  i: 5, rot: -4 },
+  { top: "84%", left: "60%", i: 5, rot: 18 },
 ];
 
 /**
