@@ -55,6 +55,9 @@ export default function Admin() {
       <Button asChild variant="outline" className="rounded-full border-ghana-green text-ghana-green hover:bg-ghana-green/10">
         <Link to="/app/admin/chat-diagnostics">Open chat diagnostics →</Link>
       </Button>
+      <Button asChild variant="outline" className="rounded-full border-ghana-gold text-ghana-brown hover:bg-ghana-gold/10">
+        <Link to="/app/admin/payment-events">Open payment events →</Link>
+      </Button>
       <div className="grid grid-cols-2 gap-3">
         {[["Members","—"],["Premium","—"],["Diamond","—"],["Revenue","—"]].map(([l,v]) => (
           <Card key={l} className="rounded-2xl p-4">
