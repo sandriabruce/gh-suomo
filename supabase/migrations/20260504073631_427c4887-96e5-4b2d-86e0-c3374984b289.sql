@@ -1,0 +1,5 @@
+UPDATE public.profiles SET photos = '["https://dudzxsnrybsgezodylwf.supabase.co/storage/v1/object/public/profile-photos/lilly-real.png"]'::jsonb WHERE id = 'dc31eff8-b0e1-4ffa-882f-6a24e9c8b391';
+UPDATE public.profiles SET photos = '["https://dudzxsnrybsgezodylwf.supabase.co/storage/v1/object/public/profile-photos/kwame-real.png"]'::jsonb WHERE id = '7548bfcc-9e7b-41b0-89df-a565a7e3665f';
+UPDATE public.profiles SET photos = '["https://dudzxsnrybsgezodylwf.supabase.co/storage/v1/object/public/profile-photos/sissy-real.png"]'::jsonb WHERE id = '3752aaae-5fe9-4f3e-b6e2-3d6dc943aa2e';
+UPDATE public.profiles SET photos = '["https://dudzxsnrybsgezodylwf.supabase.co/storage/v1/object/public/profile-photos/paul-real.png"]'::jsonb WHERE id = 'e7c0083a-fddc-4a49-938a-b64ed98b3949';
+UPDATE public.profiles SET photos = '["https://dudzxsnrybsgezodylwf.supabase.co/storage/v1/object/public/profile-photos/missy-real.png"]'::jsonb WHERE id = '465541e8-1543-49ee-a919-b3c42bff5106';
