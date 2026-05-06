@@ -313,6 +313,55 @@ export default function Onboarding() {
             )}
 
             {step === "review" && (
+              <></>
+            )}
+            {step === "interests" && (
+              <Question title="Pick at least 3 interests" hint={`Selected ${form.interests.length}/8`}>
+                <div className="flex flex-wrap gap-2">
+                  {INTERESTS.map((i) => {
+                    const active = form.interests.includes(i);
+                    return (
+                      <button key={i} type="button"
+                        onClick={() => {
+                          setForm((f) => ({
+                            ...f,
+                            interests: active
+                              ? f.interests.filter((x) => x !== i)
+                              : f.interests.length < 8 ? [...f.interests, i] : f.interests,
+                          }));
+                        }}
+                        className={cn(
+                          "rounded-full border px-3 py-1.5 text-sm transition",
+                          active ? "bg-ghana-gold text-ghana-brown border-ghana-gold" : "bg-background hover:bg-muted/50"
+                        )}>
+                        {i}
+                      </button>
+                    );
+                  })}
+                </div>
+              </Question>
+            )}
+
+            {step === "prompt" && (
+              <Question title="Answer a prompt" hint="Pick one and share a short, honest answer (at least 5 characters).">
+                <select
+                  className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                  value={form.prompt_q}
+                  onChange={(e) => update("prompt_q", e.target.value)}
+                >
+                  <option value="">Choose a prompt…</option>
+                  {PROMPTS.map((p) => <option key={p} value={p}>{p}</option>)}
+                </select>
+                <textarea
+                  className="mt-3 min-h-32 w-full rounded-md border bg-background px-3 py-2 text-sm"
+                  value={form.prompt_a} maxLength={400}
+                  placeholder="Write your answer…"
+                  onChange={(e) => update("prompt_a", e.target.value)}
+                />
+              </Question>
+            )}
+
+            {step === "review" && (
               <div>
                 <h2 className="heading-gold font-display text-2xl font-bold">Looks good?</h2>
                 <p className="text-sm text-muted-foreground mt-1">Review your details. You can edit them anytime from your profile.</p>
