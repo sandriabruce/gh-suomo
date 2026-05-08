@@ -6,11 +6,12 @@ import { useProfile } from "@/hooks/useProfile";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { TrialBadge } from "@/components/plan/TrialBadge";
 import { SafeText } from "@/components/ui/SafeText";
-import { Link } from "react-router-dom";
-import { User as UserIcon } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { User as UserIcon, LogOut } from "lucide-react";
 
 export default function Profile() {
   const { signOut, user } = useAuth();
+  const navigate = useNavigate();
   const { data: profile } = useProfile();
   const { plan, planLabel, trial, limits } = useEntitlements();
   const displayName = profile?.first_name?.trim() || user?.user_metadata?.first_name || user?.email?.split("@")[0] || "Your profile";
@@ -118,7 +119,13 @@ export default function Profile() {
         <Button asChild className="rounded-full bg-ghana-gold text-ghana-brown hover:bg-ghana-gold/90">
           <Link to="/app/profile/edit">Edit profile</Link>
         </Button>
-        <Button variant="outline" className="border-ghana-red text-ghana-red" onClick={signOut}>Sign out</Button>
+        <Button
+          variant="outline"
+          className="border-ghana-red text-ghana-red"
+          onClick={async () => { await signOut(); navigate("/", { replace: true }); }}
+        >
+          <LogOut className="mr-2 h-4 w-4" /> Sign out
+        </Button>
       </div>
     </div>
   );
