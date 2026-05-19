@@ -42,7 +42,7 @@ export default function Chat() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("messages")
-        .select("id,sender_id,content,created_at")
+        .select("id,sender_id,content,created_at,read_at")
         .eq("match_id", matchId!)
         .order("created_at", { ascending: true });
       if (error) throw error;
@@ -59,6 +59,20 @@ export default function Chat() {
     if (!matchId || !user) return;
     markMatchRead(user.id, matchId);
     qc.invalidateQueries({ queryKey: ["unread-messages", user.id] });
+
+    // Mark incoming unread messages as read on the server (sender sees the receipt).
+    const unreadIncoming = (messages ?? []).filter(
+      (m) => m.sender_id !== user.id && !m.read_at,
+    );
+    if (unreadIncoming.length > 0) {
+      supabase
+        .from("messages")
+        .update({ read_at: new Date().toISOString() })
+        .in("id", unreadIncoming.map((m) => m.id))
+        .then(({ error }) => {
+          if (error) console.warn("mark read failed", error);
+        });
+    }
   }, [matchId, user, messages, qc]);
 
   useEffect(() => {
@@ -69,6 +83,18 @@ export default function Chat() {
         "postgres_changes",
         {
           event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `match_id=eq.${matchId}`,
+        },
+        () => {
+          qc.invalidateQueries({ queryKey: ["messages", matchId] });
+        }
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
           schema: "public",
           table: "messages",
           filter: `match_id=eq.${matchId}`,
@@ -185,13 +211,25 @@ export default function Chat() {
         {(messages ?? []).length === 0 ? (
           <p className="text-center text-sm text-muted-foreground py-8">Say hello 👋</p>
         ) : (
-          (messages ?? []).map((m) => (
-            <div key={m.id} className={`flex ${m.sender_id === user?.id ? "justify-end" : "justify-start"}`}>
-              <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${m.sender_id === user?.id ? "bg-ghana-gold text-ghana-brown" : "bg-muted text-foreground"}`}>
-                {m.content}
+          (messages ?? []).map((m, i, arr) => {
+            const mine = m.sender_id === user?.id;
+            // Show "Read" only on the latest read message I sent, to avoid clutter.
+            const isLastReadMine =
+              mine && !!m.read_at &&
+              !arr.slice(i + 1).some((n) => n.sender_id === user?.id && n.read_at);
+            return (
+              <div key={m.id} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
+                <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${mine ? "bg-ghana-gold text-ghana-brown" : "bg-muted text-foreground"}`}>
+                  {m.content}
+                </div>
+                {isLastReadMine && (
+                  <span className="mt-0.5 pr-1 text-[10px] text-muted-foreground">
+                    Read {new Date(m.read_at!).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                  </span>
+                )}
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
