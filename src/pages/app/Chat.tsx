@@ -109,22 +109,39 @@ export default function Chat() {
           .maybeSingle();
         if (receiver?.is_seed) {
           const { data: { session } } = await supabase.auth.getSession();
-          fetch("https://bjfvmgymyfwgbzntcigj.supabase.co/functions/v1/generate-seed-response", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${session?.access_token ?? ""}`,
-              "apikey": "sb_publishable_Ez-FJKDxN-lnjPQ8ouwYoA_Fh9UyFN3",
-            },
-            body: JSON.stringify({
-              sender_id: user.id,
-              receiver_id,
-              match_id: matchId,
-              message_content: content,
-            }),
-          }).then(() => {
-            setTimeout(() => qc.invalidateQueries({ queryKey: ["messages", matchId] }), 5000);
-          }).catch(() => { /* fire and forget */ });
+          const payload = JSON.stringify({
+            sender_id: user.id,
+            receiver_id,
+            match_id: matchId,
+            message_content: content,
+          });
+          const headers = {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${session?.access_token ?? ""}`,
+            "apikey": "sb_publishable_Ez-FJKDxN-lnjPQ8ouwYoA_Fh9UyFN3",
+          };
+          const url = "https://bjfvmgymyfwgbzntcigj.supabase.co/functions/v1/generate-seed-response";
+          const MAX_ATTEMPTS = 4;
+          const TIMEOUT_MS = 15000;
+          const attempt = async (n: number): Promise<void> => {
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+            try {
+              const res = await fetch(url, { method: "POST", headers, body: payload, signal: ctrl.signal });
+              clearTimeout(timer);
+              if (!res.ok) throw new Error(`status ${res.status}`);
+              setTimeout(() => qc.invalidateQueries({ queryKey: ["messages", matchId] }), 2000);
+            } catch (err) {
+              clearTimeout(timer);
+              if (n >= MAX_ATTEMPTS) {
+                console.warn("generate-seed-response failed after retries", err);
+                return;
+              }
+              const delay = Math.min(1000 * 2 ** (n - 1), 8000) + Math.random() * 500;
+              setTimeout(() => { void attempt(n + 1); }, delay);
+            }
+          };
+          void attempt(1);
         }
       }
     } catch { /* non-fatal */ }
