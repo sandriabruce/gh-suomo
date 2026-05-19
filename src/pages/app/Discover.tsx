@@ -332,53 +332,13 @@ export default function Discover() {
           {openPerson && (
             <>
               {openPerson.photos.length > 0 && (
-                <div className="relative bg-muted" style={{ height: "55vh", overflow: "hidden", width: "100%" }}>
-                  <Carousel
-                    setApi={setGalleryApi}
-                    opts={{ loop: openPerson.photos.length > 1, align: "start" }}
-                    className="h-full w-full"
-                  >
-                    <CarouselContent className="ml-0 h-full">
-                      {openPerson.photos.map((src, idx) => (
-                        <CarouselItem key={`${src}-${idx}`} className="h-full pl-0 basis-full">
-                          <img
-                            src={src}
-                            alt={`${openPerson.first_name ?? "Member"} photo ${idx + 1}`}
-                            className="h-full w-full"
-                            style={{ objectFit: "cover", objectPosition: "center top" }}
-                            onContextMenu={(e) => e.preventDefault()}
-                            draggable={false}
-                          />
-                        </CarouselItem>
-                      ))}
-                    </CarouselContent>
-                    {openPerson.photos.length > 1 && (
-                      <>
-                        <CarouselPrevious className="left-3 hidden sm:flex" />
-                        <CarouselNext className="right-3 hidden sm:flex" />
-                      </>
-                    )}
-                  </Carousel>
-                  {openPerson.photos.length > 1 && (
-                    <>
-                      <div className="absolute right-3 top-3 rounded-full bg-black/60 px-2 py-0.5 text-xs font-medium text-white">
-                        {galleryIndex + 1} / {openPerson.photos.length}
-                      </div>
-                      <div className="absolute inset-x-0 bottom-2 flex justify-center gap-1.5">
-                        {openPerson.photos.map((_, idx) => (
-                          <button
-                            key={idx}
-                            type="button"
-                            aria-label={`Go to photo ${idx + 1}`}
-                            onClick={() => galleryApi?.scrollTo(idx)}
-                            className={`h-1.5 rounded-full transition-all ${
-                              idx === galleryIndex ? "w-6 bg-white" : "w-1.5 bg-white/60"
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </>
-                  )}
+                <div style={{ height: "55vh", overflow: "hidden", width: "100%" }}>
+                  <img
+                    src={openPerson.photos[0]}
+                    alt={`${openPerson.first_name ?? "Member"} photo`}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 20%" }}
+                    onContextMenu={(e) => e.preventDefault()}
+                  />
                 </div>
               )}
               <div className="p-5 space-y-4">
