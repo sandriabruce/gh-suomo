@@ -53,6 +53,28 @@ export default function Chat() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [messages]);
 
+  useEffect(() => {
+    if (!matchId) return;
+    const channel = supabase
+      .channel(`messages-${matchId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `match_id=eq.${matchId}`,
+        },
+        () => {
+          qc.invalidateQueries({ queryKey: ["messages", matchId] });
+        }
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [matchId, qc]);
+
   if (!matchId) {
     return (
       <div className="space-y-4">
