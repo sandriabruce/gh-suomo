@@ -99,11 +99,18 @@ export function AppShell() {
             >
               <span className="relative">
                 <Icon className="h-5 w-5" />
-                {to === "/app/matches" && unread && unread.total > 0 && (
-                  <span className="absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-ghana-red px-1 text-[9px] font-bold text-white">
-                    {unread.total > 9 ? "9+" : unread.total}
-                  </span>
-                )}
+                {to === "/app/matches" && unread && (() => {
+                  const chats = Object.keys(unread.perMatch ?? {}).length;
+                  if (chats === 0) return null;
+                  if (chats < 10) {
+                    return <span className="absolute -right-1 -top-0.5 h-2 w-2 rounded-full bg-ghana-red" />;
+                  }
+                  return (
+                    <span className="absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-ghana-red px-1 text-[9px] font-bold text-white">
+                      {chats}
+                    </span>
+                  );
+                })()}
               </span>
               {label}
             </NavLink>
