@@ -37,7 +37,7 @@ export default function Chat() {
 
   const { data: messages } = useQuery({
     queryKey: ["messages", matchId],
-    enabled: !!matchId && !!user && limits.canChat,
+    enabled: !!matchId && !!user,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("messages")
@@ -52,20 +52,6 @@ export default function Chat() {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [messages]);
-
-  if (!limits.canChat) {
-    return (
-      <div className="space-y-4">
-        <SafetyBanner variant="warn" message="Never share phone numbers, WhatsApp, or money requests. Report anything suspicious." />
-        <TrialBadge />
-        <PlanLockOverlay
-          title="Chat is a Premium feature"
-          message={`The ${plan === "verified" ? "Verified" : "Explorer"} plan doesn't include messaging. Upgrade to Premium or Diamond to chat with your matches.`}
-          cta="Unlock chat"
-        />
-      </div>
-    );
-  }
 
   if (!matchId) {
     return (
