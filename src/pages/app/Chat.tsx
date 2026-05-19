@@ -109,7 +109,7 @@ export default function Chat() {
           .maybeSingle();
         if (receiver?.is_seed) {
           supabase.functions.invoke("generate-seed-response", {
-            body: { sender_id: user.id, receiver_id, message_content: content },
+            body: { sender_id: user.id, receiver_id, match_id: matchId, message_content: content },
           }).then(() => {
             qc.invalidateQueries({ queryKey: ["messages", matchId] });
           });
