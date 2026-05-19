@@ -87,6 +87,7 @@ export type Database = {
           flagged: boolean
           id: string
           match_id: string
+          read_at: string | null
           sender_id: string
         }
         Insert: {
@@ -95,6 +96,7 @@ export type Database = {
           flagged?: boolean
           id?: string
           match_id: string
+          read_at?: string | null
           sender_id: string
         }
         Update: {
@@ -103,6 +105,7 @@ export type Database = {
           flagged?: boolean
           id?: string
           match_id?: string
+          read_at?: string | null
           sender_id?: string
         }
         Relationships: [
