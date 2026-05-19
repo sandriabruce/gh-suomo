@@ -15,6 +15,7 @@ import { useEffect } from "react";
 import { useProfile } from "@/hooks/useProfile";
 import { computeTrial } from "@/features/trial/entitlements";
 import { toast } from "sonner";
+import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 
 const tabs = [
   { to: "/app/discover", label: "Discover", icon: Compass },
@@ -29,6 +30,7 @@ export function AppShell() {
   const { isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
   const { data: profile } = useProfile();
+  const { data: unread } = useUnreadMessages();
   const allTabs = isAdmin ? [...tabs, { to: "/app/admin", label: "Admin", icon: Crown }] : tabs;
 
   // One-time toast confirming Premium activation + new trial end date.
@@ -95,7 +97,14 @@ export function AppShell() {
                 )
               }
             >
-              <Icon className="h-5 w-5" />
+              <span className="relative">
+                <Icon className="h-5 w-5" />
+                {to === "/app/matches" && unread && unread.total > 0 && (
+                  <span className="absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-ghana-red px-1 text-[9px] font-bold text-white">
+                    {unread.total > 9 ? "9+" : unread.total}
+                  </span>
+                )}
+              </span>
               {label}
             </NavLink>
           ))}
