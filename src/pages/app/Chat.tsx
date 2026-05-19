@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Lock } from "lucide-react";
 import { toast } from "sonner";
+import { markMatchRead } from "@/hooks/useUnreadMessages";
 
 const FREE_MESSAGE_LIMIT = 2;
 
@@ -52,6 +53,13 @@ export default function Chat() {
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [messages]);
+
+  // Mark this match as read whenever messages load/update while viewing it.
+  useEffect(() => {
+    if (!matchId || !user) return;
+    markMatchRead(user.id, matchId);
+    qc.invalidateQueries({ queryKey: ["unread-messages", user.id] });
+  }, [matchId, user, messages, qc]);
 
   useEffect(() => {
     if (!matchId) return;
