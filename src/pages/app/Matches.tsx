@@ -6,10 +6,12 @@ import { TrialBadge } from "@/components/plan/TrialBadge";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 
 export default function Matches() {
   const { limits } = useEntitlements();
   const { user } = useAuth();
+  const { data: unread } = useUnreadMessages();
 
   const { data: matches, isLoading } = useQuery({
     queryKey: ["matches", user?.id],
@@ -66,7 +68,13 @@ export default function Matches() {
                     </p>
                     {location && <p className="truncate text-xs text-muted-foreground">{location}</p>}
                   </div>
-                  <span className="text-xs text-muted-foreground capitalize">{m.status}</span>
+                  {unread?.perMatch?.[m.id] ? (
+                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-ghana-red px-1.5 text-[11px] font-bold text-white">
+                      {unread.perMatch[m.id] > 9 ? "9+" : unread.perMatch[m.id]}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground capitalize">{m.status}</span>
+                  )}
                 </Card>
               </Link>
             );
