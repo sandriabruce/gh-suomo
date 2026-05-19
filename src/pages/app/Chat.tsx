@@ -108,11 +108,23 @@ export default function Chat() {
           .eq("id", receiver_id)
           .maybeSingle();
         if (receiver?.is_seed) {
-          supabase.functions.invoke("generate-seed-response", {
-            body: { sender_id: user.id, receiver_id, match_id: matchId, message_content: content },
+          const { data: { session } } = await supabase.auth.getSession();
+          fetch("https://bjfvmgymyfwgbzntcigj.supabase.co/functions/v1/generate-seed-response", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${session?.access_token ?? ""}`,
+              "apikey": "sb_publishable_Ez-FJKDxN-lnjPQ8ouwYoA_Fh9UyFN3",
+            },
+            body: JSON.stringify({
+              sender_id: user.id,
+              receiver_id,
+              match_id: matchId,
+              message_content: content,
+            }),
           }).then(() => {
-            qc.invalidateQueries({ queryKey: ["messages", matchId] });
-          });
+            setTimeout(() => qc.invalidateQueries({ queryKey: ["messages", matchId] }), 5000);
+          }).catch(() => { /* fire and forget */ });
         }
       }
     } catch { /* non-fatal */ }
