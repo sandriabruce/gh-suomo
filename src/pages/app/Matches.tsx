@@ -7,6 +7,8 @@ import { useEntitlements } from "@/hooks/useEntitlements";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
+import { Logo } from "@/components/brand/Logo";
+import { Compass } from "lucide-react";
 
 export default function Matches() {
   const { limits } = useEntitlements();
