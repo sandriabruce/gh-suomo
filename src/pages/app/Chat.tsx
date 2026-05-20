@@ -366,7 +366,7 @@ export default function Chat() {
           <AvatarFallback>{partnerName.slice(0, 1).toUpperCase()}</AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
-          <p className="truncate font-display text-base font-semibold text-ghana-gold">
+          <p className="name-gold truncate font-display text-base font-semibold">
             {partnerName}{otherProfile?.age ? `, ${otherProfile.age}` : ""}
           </p>
         </div>

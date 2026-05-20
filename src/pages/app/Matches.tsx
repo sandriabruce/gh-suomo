@@ -81,7 +81,7 @@ export default function Matches() {
                     {photo ? <img src={photo} alt={other?.first_name ?? "Match"} className="h-full w-full object-cover" /> : null}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-display text-base font-semibold text-ghana-gold">
+                    <p className="name-gold truncate font-display text-base font-semibold">
                       {other?.first_name ?? "Match"}{other?.age ? `, ${other.age}` : ""}
                     </p>
                     {location && <p className="truncate text-xs text-muted-foreground">{location}</p>}
