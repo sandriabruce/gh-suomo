@@ -105,7 +105,7 @@ export function ProfileDetailSheet({
         ) : (
           <>
             {profile.photos.length > 0 && (
-              <div className="relative" style={{ height: "55vh", width: "100%" }}>
+              <div className="relative" style={{ height: "42vh", width: "100%" }}>
                 <Carousel
                   setApi={setApi}
                   opts={{ align: "start", loop: profile.photos.length > 1 }}
