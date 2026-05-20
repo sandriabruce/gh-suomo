@@ -217,19 +217,31 @@ export default function Chat() {
           .eq("id", receiver_id)
           .maybeSingle();
         if (receiver?.is_seed) {
-          const { data: { session } } = await supabase.auth.getSession();
-          const payload = JSON.stringify({
-            sender_id: user.id,
-            receiver_id,
-            match_id: matchId,
-            message_content: content,
-          });
-          const headers = {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${session?.access_token ?? ""}`,
-            "apikey": "sb_publishable_Ez-FJKDxN-lnjPQ8ouwYoA_Fh9UyFN3",
-          };
-          const url = "https://bjfvmgymyfwgbzntcigj.supabase.co/functions/v1/generate-seed-response";
+          // Use the SDK so we hit *this* project's edge function with the right auth.
+          void supabase.functions
+            .invoke("generate-seed-response", {
+              body: {
+                sender_id: user.id,
+                receiver_id,
+                match_id: matchId,
+                message_content: content,
+              },
+            })
+            .then(({ error: fnError }) => {
+              if (fnError) {
+                console.warn("generate-seed-response failed", fnError);
+                return;
+              }
+              setTimeout(
+                () => qc.invalidateQueries({ queryKey: ["messages", matchId] }),
+                2000,
+              );
+            });
+          return;
+          // (unreachable – kept structure below intentionally removed)
+          const url = "";
+          const headers = {};
+          const payload = "";
           const MAX_ATTEMPTS = 4;
           const TIMEOUT_MS = 15000;
           const attempt = async (n: number): Promise<void> => {
