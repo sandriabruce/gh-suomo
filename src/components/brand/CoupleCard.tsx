@@ -32,7 +32,7 @@ export function CoupleCard({ couple }: { couple: Couple }) {
         height={512}
         className="mb-2 h-32 w-full rounded-xl object-cover"
       />
-      <h4 className="font-display text-base font-bold text-foreground">{couple.names}</h4>
+      <h4 className="name-gold font-display text-base font-bold">{couple.names}</h4>
       <p className="text-xs text-muted-foreground">{couple.location}</p>
       <p className="mt-2 text-xs leading-snug text-foreground/90">{couple.story}</p>
     </Card>
