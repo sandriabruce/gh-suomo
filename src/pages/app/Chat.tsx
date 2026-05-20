@@ -258,27 +258,32 @@ export default function Chat() {
         message_content: content,
       };
       console.log("[seed-reply] POST →", url, payload);
-      try {
-        const res = await fetch(url, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            apikey: anonKey,
-            Authorization: `Bearer ${session?.access_token ?? anonKey}`,
-          },
-          body: JSON.stringify(payload),
+      // Fire-and-forget: do NOT await and do NOT attach an AbortController/signal.
+      // Awaiting here ties the request to the component lifecycle; if the user
+      // navigates away the in-flight promise can be cancelled with
+      // "AbortError: signal is aborted without reason".
+      fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: anonKey,
+          Authorization: `Bearer ${session?.access_token ?? anonKey}`,
+        },
+        body: JSON.stringify(payload),
+      })
+        .then(async (res) => {
+          const text = await res.text().catch(() => "");
+          console.log("[seed-reply] response", res.status, text);
+          if (res.ok) {
+            setTimeout(
+              () => qc.invalidateQueries({ queryKey: ["messages", matchId] }),
+              2000,
+            );
+          }
+        })
+        .catch((fetchErr) => {
+          console.error("[seed-reply] fetch threw", fetchErr);
         });
-        const text = await res.text().catch(() => "");
-        console.log("[seed-reply] response", res.status, text);
-        if (res.ok) {
-          setTimeout(
-            () => qc.invalidateQueries({ queryKey: ["messages", matchId] }),
-            2000,
-          );
-        }
-      } catch (fetchErr) {
-        console.error("[seed-reply] fetch threw", fetchErr);
-      }
     } catch (outerErr) {
       console.error("[seed-reply] outer error", outerErr);
     }
