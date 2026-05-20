@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { SafetyBanner } from "@/components/safety/SafetyBanner";
 import { useEntitlements } from "@/hooks/useEntitlements";
-import { PlanLockOverlay } from "@/components/plan/PlanLockOverlay";
 import { TrialBadge } from "@/components/plan/TrialBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -15,8 +14,16 @@ import { markMatchRead } from "@/hooks/useUnreadMessages";
 
 const FREE_MESSAGE_LIMIT = 2;
 
+type ChatMessage = {
+  id: string;
+  sender_id: string;
+  content: string;
+  created_at: string;
+  read_at: string | null;
+};
+
 export default function Chat() {
-  const { limits, trial, plan } = useEntitlements();
+  const { trial, plan } = useEntitlements();
   const { id: matchId } = useParams<{ id: string }>();
   const { user } = useAuth();
   const qc = useQueryClient();
@@ -36,7 +43,7 @@ export default function Chat() {
     } catch { /* ignore */ }
   }, [draftKey]);
 
-  const { data: messages } = useQuery({
+  const { data: messages = [], isLoading: messagesLoading, error: messagesError } = useQuery<ChatMessage[]>({
     queryKey: ["messages", matchId],
     enabled: !!matchId && !!user,
     queryFn: async () => {
@@ -61,7 +68,7 @@ export default function Chat() {
     qc.invalidateQueries({ queryKey: ["unread-messages", user.id] });
 
     // Mark incoming unread messages as read on the server (sender sees the receipt).
-    const unreadIncoming = (messages ?? []).filter(
+    const unreadIncoming = messages.filter(
       (m) => m.sender_id !== user.id && !m.read_at,
     );
     if (unreadIncoming.length > 0) {
@@ -110,18 +117,7 @@ export default function Chat() {
     };
   }, [matchId, qc]);
 
-  if (!matchId) {
-    return (
-      <div className="space-y-4">
-        <SafetyBanner variant="warn" message="Never share phone numbers, WhatsApp, or money requests. Report anything suspicious." />
-        {trial.active && <TrialBadge />}
-        <h1 className="heading-gold font-display text-2xl font-bold">Chat</h1>
-        <p className="text-sm text-muted-foreground">Open a conversation from Matches.</p>
-      </div>
-    );
-  }
-
-  const myMessageCount = (messages ?? []).filter((m) => m.sender_id === user?.id).length;
+  const myMessageCount = messages.filter((m) => m.sender_id === user?.id).length;
   const isFreePlan = plan === "explorer" || plan === "verified";
   const overFreeLimit = isFreePlan && !trial.active && myMessageCount >= FREE_MESSAGE_LIMIT;
 
@@ -135,19 +131,43 @@ export default function Chat() {
     }
   }, [overFreeLimit, draft, draftKey, navigate]);
 
+  if (!matchId) {
+    return (
+      <div className="space-y-4">
+        <SafetyBanner variant="warn" message="Never share phone numbers, WhatsApp, or money requests. Report anything suspicious." />
+        {trial.active && <TrialBadge />}
+        <h1 className="heading-gold font-display text-2xl font-bold">Chat</h1>
+        <p className="text-sm text-muted-foreground">Open a conversation from Matches.</p>
+      </div>
+    );
+  }
+
   async function send() {
     if (!draft.trim() || !user || !matchId) return;
     setSending(true);
     const content = draft.trim();
-    const { error } = await supabase.from("messages").insert({
-      match_id: matchId,
-      sender_id: user.id,
-      content,
-    });
+    const { data: inserted, error } = await supabase
+      .from("messages")
+      .insert({
+        match_id: matchId,
+        sender_id: user.id,
+        content,
+      })
+      .select("id,sender_id,content,created_at,read_at")
+      .single();
     setSending(false);
-    if (error) { toast.error(error.message); return; }
+    if (error) {
+      console.error("send message failed", error);
+      toast.error(`Message not sent: ${error.message}`);
+      return;
+    }
     setDraft("");
     if (draftKey) { try { localStorage.removeItem(draftKey); } catch { /* ignore */ } }
+    if (inserted) {
+      qc.setQueryData<ChatMessage[]>(["messages", matchId], (current = []) => (
+        current.some((m) => m.id === inserted.id) ? current : [...current, inserted]
+      ));
+    }
     qc.invalidateQueries({ queryKey: ["messages", matchId] });
 
     // If the other party in this match is a seed profile, trigger an AI reply.
@@ -209,10 +229,16 @@ export default function Chat() {
       <SafetyBanner variant="warn" message="Never share phone numbers, WhatsApp, or money requests. Report anything suspicious." />
       {trial.active && <TrialBadge />}
       <div ref={scrollRef} className="min-h-[300px] max-h-[55vh] overflow-y-auto rounded-2xl border bg-card p-3 space-y-2">
-        {(messages ?? []).length === 0 ? (
+        {messagesError ? (
+          <p className="text-center text-sm text-destructive py-8">
+            Unable to load messages: {messagesError.message}
+          </p>
+        ) : messagesLoading ? (
+          <p className="text-center text-sm text-muted-foreground py-8">Loading messages…</p>
+        ) : messages.length === 0 ? (
           <p className="text-center text-sm text-muted-foreground py-8">Say hello 👋</p>
         ) : (
-          (messages ?? []).map((m, i, arr) => {
+          messages.map((m, i, arr) => {
             const mine = m.sender_id === user?.id;
             // Show "Read" only on the latest read message I sent, to avoid clutter.
             const isLastReadMine =
