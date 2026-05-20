@@ -10,6 +10,8 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
   type CarouselApi,
 } from "@/components/ui/carousel";
 import { BadgeCheck, MessageCircle, ShieldAlert } from "lucide-react";
@@ -125,6 +127,12 @@ export function ProfileDetailSheet({
                       </CarouselItem>
                     ))}
                   </CarouselContent>
+                  {profile.photos.length > 1 && (
+                    <>
+                      <CarouselPrevious className="left-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-ghana-brown border-0" />
+                      <CarouselNext className="right-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-ghana-brown border-0" />
+                    </>
+                  )}
                 </Carousel>
                 {profile.photos.length > 1 && (
                   <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
