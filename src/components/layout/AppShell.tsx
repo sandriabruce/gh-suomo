@@ -16,6 +16,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { computeTrial } from "@/features/trial/entitlements";
 import { toast } from "sonner";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
+import { ErrorBoundary } from "@/components/layout/ErrorBoundary";
 
 const tabs = [
   { to: "/app/discover", label: "Discover", icon: Compass },
@@ -94,7 +95,9 @@ export function AppShell() {
         ) : profileIncomplete ? (
           <Navigate to="/onboarding" replace />
         ) : (
-          <Outlet />
+          <ErrorBoundary>
+            <Outlet />
+          </ErrorBoundary>
         )}
       </main>
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 backdrop-blur">
