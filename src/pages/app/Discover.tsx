@@ -286,44 +286,57 @@ export default function Discover() {
         />
       ) : (
       <>
-      <Card className={`relative aspect-[3/4] overflow-hidden rounded-3xl ${accent} text-white shadow-warm`}>
-        <button
-          type="button"
-          onClick={() => person && setOpenId(person.id)}
-          disabled={!person}
-          className="absolute inset-0 z-10"
-          aria-label={person ? `View ${person.first_name ?? "member"}'s profile` : "Profile"}
-        />
-        {cover && (
-          <img
-            src={cover}
-            alt={person?.first_name ?? "Member"}
-            loading="eager"
-            className="absolute inset-0 h-full w-full object-contain object-center no-snap"
-            onContextMenu={(e) => e.preventDefault()}
-          />
-        )}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-5">
-          {loading ? (
-            <h2 className="font-display text-3xl font-bold">Finding people…</h2>
-          ) : person ? (
-            <>
-              <h2 className="font-display text-3xl font-bold">
-                {person.first_name ?? "Member"}{person.age ? `, ${person.age}` : ""}
-              </h2>
-              {person.location && <p className="text-sm opacity-90">{person.location}</p>}
-              {person.bio && <p className="mt-2 text-sm line-clamp-3">{person.bio}</p>}
-              <p className="mt-2 text-xs uppercase tracking-wider opacity-80">Tap to view profile</p>
-            </>
-          ) : (
-            <h2 className="font-display text-2xl font-bold">No profiles to show yet</h2>
-          )}
+      {loading ? (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {Array.from({ length: 9 }).map((_, idx) => (
+            <div key={idx} className="aspect-[3/4] animate-pulse rounded-2xl bg-muted" />
+          ))}
         </div>
-      </Card>
-      <div className="relative z-20 flex justify-center gap-6">
-        <Button onClick={() => setI((x) => x + 1)} size="lg" variant="outline" disabled={!person} className="h-16 w-16 rounded-full border-2 border-ghana-red"><X className="h-7 w-7 text-ghana-red" /></Button>
-        <Button onClick={handleLike} size="lg" disabled={!person} className="h-16 w-16 rounded-full bg-ghana-gold text-ghana-brown hover:bg-ghana-gold/90"><Heart className="h-7 w-7 fill-white" /></Button>
-      </div>
+      ) : candidates.length === 0 ? (
+        <Card className="rounded-2xl p-6 text-center text-sm text-muted-foreground">
+          No profiles to show yet. Check back soon.
+        </Card>
+      ) : (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          {candidates.map((c) => {
+            const photo = c.photos?.[0];
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => setOpenId(c.id)}
+                className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-muted text-left shadow-warm focus:outline-none focus:ring-2 focus:ring-ghana-gold"
+                aria-label={`View ${c.first_name ?? "member"}'s profile`}
+              >
+                {photo ? (
+                  <img
+                    src={photo}
+                    alt={c.first_name ?? "Member"}
+                    loading="lazy"
+                    className="absolute inset-0 h-full w-full object-cover object-center no-snap transition-transform group-hover:scale-105"
+                    onContextMenu={(e) => e.preventDefault()}
+                  />
+                ) : (
+                  <div className={`absolute inset-0 ${accent}`} />
+                )}
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-2.5">
+                  <p className="name-gold font-display text-sm font-bold leading-tight">
+                    {c.first_name ?? "Member"}{c.age ? `, ${c.age}` : ""}
+                  </p>
+                  {c.location && (
+                    <p className="truncate text-[11px] text-white/90">{c.location}</p>
+                  )}
+                </div>
+                {c.verified && (
+                  <span className="absolute right-1.5 top-1.5 inline-flex items-center gap-0.5 rounded-full bg-ghana-gold/90 px-1.5 py-0.5 text-[10px] font-semibold text-ghana-brown">
+                    <BadgeCheck className="h-3 w-3" />
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
       </>
       )}
       <section>
