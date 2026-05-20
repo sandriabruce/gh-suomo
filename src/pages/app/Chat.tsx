@@ -303,7 +303,6 @@ export default function Chat() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          apikey: anonKey,
           Authorization: `Bearer ${session?.access_token ?? anonKey}`,
         },
         body: JSON.stringify(payload),
