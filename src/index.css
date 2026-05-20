@@ -150,6 +150,16 @@ All colors MUST be HSL.
 }
 
 @layer components {
+  /* Solid gold name styling — no stroke, no transparency */
+  .name-gold {
+    color: hsl(48 95% 58%) !important;
+    -webkit-text-fill-color: hsl(48 95% 58%) !important;
+    -webkit-text-stroke: 0 !important;
+    text-stroke: 0 !important;
+    text-shadow: 0 1px 2px hsl(22 60% 6% / 0.45);
+    font-weight: 700;
+  }
+
   /* Thin gold outline around section/page headers */
   .heading-gold {
     display: inline-block;
