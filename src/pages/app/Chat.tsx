@@ -52,7 +52,25 @@ export default function Chat() {
         .select("id,sender_id,content,created_at,read_at")
         .eq("match_id", matchId!)
         .order("created_at", { ascending: true });
-      if (error) throw error;
+      if (error) {
+        // Fallback for deployments where the read_at column hasn't propagated
+        // to PostgREST's schema cache yet (returns 400 / PGRST204).
+        const missingReadAt =
+          /read_at/i.test(error.message ?? "") ||
+          error.code === "PGRST204" ||
+          error.code === "42703";
+        if (missingReadAt) {
+          console.warn("[messages] read_at missing, retrying without it", error);
+          const retry = await supabase
+            .from("messages")
+            .select("id,sender_id,content,created_at")
+            .eq("match_id", matchId!)
+            .order("created_at", { ascending: true });
+          if (retry.error) throw retry.error;
+          return (retry.data ?? []).map((m) => ({ ...m, read_at: null }));
+        }
+        throw error;
+      }
       return data ?? [];
     },
   });
@@ -178,7 +196,7 @@ export default function Chat() {
     if (!draft.trim() || !user || !matchId) return;
     setSending(true);
     const content = draft.trim();
-    const { data: inserted, error } = await supabase
+    let { data: inserted, error } = await supabase
       .from("messages")
       .insert({
         match_id: matchId,
@@ -187,6 +205,25 @@ export default function Chat() {
       })
       .select("id,sender_id,content,created_at,read_at")
       .single();
+    if (error) {
+      const missingReadAt =
+        /read_at/i.test(error.message ?? "") ||
+        error.code === "PGRST204" ||
+        error.code === "42703";
+      if (missingReadAt) {
+        const retry = await supabase
+          .from("messages")
+          .insert({ match_id: matchId, sender_id: user.id, content })
+          .select("id,sender_id,content,created_at")
+          .single();
+        if (!retry.error && retry.data) {
+          inserted = { ...retry.data, read_at: null } as ChatMessage;
+          error = null;
+        } else if (retry.error) {
+          error = retry.error;
+        }
+      }
+    }
     setSending(false);
     if (error) {
       console.error("send message failed", error);
