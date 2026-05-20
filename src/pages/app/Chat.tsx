@@ -217,26 +217,39 @@ export default function Chat() {
           .eq("id", receiver_id)
           .maybeSingle();
         if (receiver?.is_seed) {
-          // Use the SDK so we hit *this* project's edge function with the right auth.
-          void supabase.functions
-            .invoke("generate-seed-response", {
-              body: {
-                sender_id: user.id,
-                receiver_id,
-                match_id: matchId,
-                message_content: content,
-              },
-            })
-            .then(({ error: fnError }) => {
-              if (fnError) {
-                console.warn("generate-seed-response failed", fnError);
-                return;
+          const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-seed-response`;
+          const { data: { session } } = await supabase.auth.getSession();
+          const payload = {
+            sender_id: user.id,
+            receiver_id,
+            match_id: matchId,
+            message_content: content,
+          };
+          console.log("[seed-reply] POST →", url, payload);
+          fetch(url, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify(payload),
+            keepalive: true,
+          })
+            .then(async (res) => {
+              const text = await res.text().catch(() => "");
+              console.log("[seed-reply] response", res.status, text);
+              if (res.ok) {
+                setTimeout(
+                  () => qc.invalidateQueries({ queryKey: ["messages", matchId] }),
+                  2000,
+                );
               }
-              setTimeout(
-                () => qc.invalidateQueries({ queryKey: ["messages", matchId] }),
-                2000,
-              );
+            })
+            .catch((err) => {
+              console.warn("[seed-reply] fetch failed", err);
             });
+          console.log("[seed-reply] fetch dispatched");
         }
       }
     } catch { /* non-fatal */ }
