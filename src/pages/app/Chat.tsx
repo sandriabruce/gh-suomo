@@ -351,12 +351,12 @@ export default function Chat() {
     <div className="flex flex-col gap-3">
       <SafetyBanner variant="warn" message="Never share phone numbers, WhatsApp, or money requests. Report anything suspicious." />
       {trial.active && <TrialBadge />}
-      <div className="flex items-center gap-3 rounded-2xl border bg-card p-3">
+      <div className="flex items-center gap-3 rounded-2xl border bg-background p-3">
         <Button
           asChild
           variant="ghost"
           size="icon"
-          className="h-9 w-9 shrink-0 text-ghana-brown"
+          className="h-9 w-9 shrink-0 bg-ghana-gold text-ghana-brown hover:bg-ghana-gold/90"
           aria-label="Back to matches"
         >
           <Link to="/app/matches"><ArrowLeft className="h-5 w-5" /></Link>
@@ -366,7 +366,7 @@ export default function Chat() {
           <AvatarFallback>{partnerName.slice(0, 1).toUpperCase()}</AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
-          <p className="truncate font-display text-base font-semibold text-ghana-brown">
+          <p className="truncate font-display text-base font-semibold text-foreground">
             {partnerName}{otherProfile?.age ? `, ${otherProfile.age}` : ""}
           </p>
         </div>
