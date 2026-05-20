@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { SafetyBanner } from "@/components/safety/SafetyBanner";
@@ -9,11 +10,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { Logo } from "@/components/brand/Logo";
 import { Compass } from "lucide-react";
+import { ProfileDetailSheet } from "@/components/profile/ProfileDetailSheet";
 
 export default function Matches() {
   const { limits } = useEntitlements();
   const { user } = useAuth();
   const { data: unread } = useUnreadMessages();
+  const [open, setOpen] = useState<{ userId: string; matchId: string } | null>(null);
 
   const { data: matches, isLoading } = useQuery({
     queryKey: ["matches", user?.id],
@@ -65,8 +68,14 @@ export default function Matches() {
             const other = m.other as { first_name?: string; age?: number; city?: string; country?: string; photos?: unknown } | undefined;
             const photo = Array.isArray(other?.photos) ? (other!.photos[0] as string | undefined) : undefined;
             const location = [other?.city, other?.country].filter(Boolean).join(", ");
+            const otherId = m.user_a === user!.id ? m.user_b : m.user_a;
             return (
-              <Link key={m.id} to={`/app/chat/${m.id}`}>
+              <button
+                key={m.id}
+                type="button"
+                onClick={() => setOpen({ userId: otherId, matchId: m.id })}
+                className="w-full text-left"
+              >
                 <Card className="flex items-center gap-3 rounded-2xl p-3 hover:bg-muted/40 transition">
                   <div className="h-12 w-12 overflow-hidden rounded-full bg-muted shrink-0">
                     {photo ? <img src={photo} alt={other?.first_name ?? "Match"} className="h-full w-full object-cover" /> : null}
@@ -85,7 +94,7 @@ export default function Matches() {
                     <span className="text-xs text-muted-foreground capitalize">{m.status}</span>
                   )}
                 </Card>
-              </Link>
+              </button>
             );
           })}
         </div>
@@ -96,6 +105,13 @@ export default function Matches() {
           Heads up: messaging your matches requires the Premium plan.
         </p>
       )}
+
+      <ProfileDetailSheet
+        userId={open?.userId ?? null}
+        matchId={open?.matchId}
+        open={!!open}
+        onOpenChange={(o) => { if (!o) setOpen(null); }}
+      />
     </div>
   );
 }
