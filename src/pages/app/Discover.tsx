@@ -339,7 +339,7 @@ export default function Discover() {
           {openPerson && (
             <>
               {openPerson.photos.length > 0 && (
-                <div className="relative" style={{ height: "55vh", width: "100%" }}>
+                <div className="relative" style={{ height: "42vh", width: "100%" }}>
                   <Carousel
                     setApi={setGalleryApi}
                     opts={{ align: "start", loop: openPerson.photos.length > 1 }}
