@@ -56,17 +56,20 @@ export function useUnreadMessages() {
   // Realtime: any new message → refresh counts.
   useEffect(() => {
     if (!user) return;
+    const channelName = `unread-messages-${user.id}-${Math.random().toString(36).slice(2, 8)}`;
     const channel = supabase
-      .channel(`unread-messages-${user.id}`)
+      .channel(channelName)
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "messages" },
         () => {
           qc.invalidateQueries({ queryKey: ["unread-messages", user.id] });
         }
-      )
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
+      );
+    channel.subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, qc]);
 
   return query;

@@ -77,8 +77,9 @@ export default function Chat() {
 
   useEffect(() => {
     if (!matchId) return;
+    const channelName = `messages-${matchId}-${Math.random().toString(36).slice(2, 8)}`;
     const channel = supabase
-      .channel(`messages-${matchId}`)
+      .channel(channelName)
       .on(
         "postgres_changes",
         {
@@ -102,8 +103,8 @@ export default function Chat() {
         () => {
           qc.invalidateQueries({ queryKey: ["messages", matchId] });
         }
-      )
-      .subscribe();
+      );
+    channel.subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
