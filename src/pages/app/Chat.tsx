@@ -12,7 +12,7 @@ import { Lock } from "lucide-react";
 import { toast } from "sonner";
 import { markMatchRead } from "@/hooks/useUnreadMessages";
 
-const FREE_MESSAGE_LIMIT = 2;
+const FREE_MESSAGE_LIMIT = 3;
 
 type ChatMessage = {
   id: string;
