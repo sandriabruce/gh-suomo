@@ -57,6 +57,20 @@ export default function Chat() {
     },
   });
 
+  const { data: matchRow, isLoading: matchLoading } = useQuery({
+    queryKey: ["match", matchId],
+    enabled: !!matchId && !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("matches")
+        .select("id,user_a,user_b,status")
+        .eq("id", matchId!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
   }, [messages]);
@@ -138,6 +152,24 @@ export default function Chat() {
         {trial.active && <TrialBadge />}
         <h1 className="heading-gold font-display text-2xl font-bold">Chat</h1>
         <p className="text-sm text-muted-foreground">Open a conversation from Matches.</p>
+      </div>
+    );
+  }
+
+  if (!matchLoading && !matchRow) {
+    return (
+      <div className="space-y-4">
+        <SafetyBanner variant="warn" message="Never share phone numbers, WhatsApp, or money requests. Report anything suspicious." />
+        <h1 className="heading-gold font-display text-2xl font-bold">Conversation unavailable</h1>
+        <p className="text-sm text-muted-foreground">
+          This match no longer exists or you don't have access to it. Start a new conversation from Discover or Matches.
+        </p>
+        <div className="flex gap-2">
+          <Button asChild variant="outline"><Link to="/app/matches">Back to matches</Link></Button>
+          <Button asChild className="bg-ghana-gold text-ghana-brown hover:bg-ghana-gold/90">
+            <Link to="/app/discover">Find people</Link>
+          </Button>
+        </div>
       </div>
     );
   }
