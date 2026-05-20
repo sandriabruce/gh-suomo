@@ -339,7 +339,7 @@ export default function Discover() {
           {openPerson && (
             <>
               {openPerson.photos.length > 0 && (
-                <div className="relative h-[34dvh] min-h-[200px] shrink-0 sm:h-[38dvh] sm:max-h-[360px]">
+                <div className="relative h-[clamp(150px,32dvh,300px)] shrink-0 sm:h-[clamp(180px,34dvh,340px)]">
                   <Carousel
                     setApi={setGalleryApi}
                     opts={{ align: "start", loop: openPerson.photos.length > 1 }}
@@ -380,7 +380,7 @@ export default function Discover() {
                   )}
                 </div>
               )}
-              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-5 pb-24">
+              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-5 pb-24 [touch-action:pan-y] [-webkit-overflow-scrolling:touch]">
                 <SheetHeader className="text-left">
                   <SheetTitle className="font-display text-2xl text-ghana-brown flex items-center gap-2">
                     <span>
