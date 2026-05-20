@@ -386,7 +386,7 @@ export default function Discover() {
               )}
               <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain p-5 pb-24 [touch-action:pan-y] [-webkit-overflow-scrolling:touch]">
                 <SheetHeader className="text-left">
-                  <SheetTitle className="font-display text-2xl text-ghana-brown flex items-center gap-2">
+                  <SheetTitle className="name-gold font-display text-2xl flex items-center gap-2">
                     <span>
                       {openPerson.first_name ?? "Member"}{openPerson.age ? `, ${openPerson.age}` : ""}
                     </span>
