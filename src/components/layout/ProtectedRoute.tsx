@@ -3,7 +3,15 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 
-export function ProtectedRoute({ children, adminOnly = false }: { children: ReactNode; adminOnly?: boolean }) {
+export function ProtectedRoute({
+  children,
+  adminOnly = false,
+  requireCompleteProfile = true,
+}: {
+  children: ReactNode;
+  adminOnly?: boolean;
+  requireCompleteProfile?: boolean;
+}) {
   const { user, loading, isAdmin, roleLoaded } = useAuth();
   const { data: profile, isLoading: profileLoading } = useProfile();
   const location = useLocation();
@@ -13,7 +21,7 @@ export function ProtectedRoute({ children, adminOnly = false }: { children: Reac
   if (adminOnly && !isAdmin) return <Navigate to="/app/discover" replace />;
   // Onboarding gate: require core profile fields before accessing the app.
   const onOnboarding = location.pathname.startsWith("/onboarding");
-  if (!adminOnly && !onOnboarding) {
+  if (requireCompleteProfile && !adminOnly && !onOnboarding) {
     if (profileLoading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Loading…</div>;
     const incomplete =
       !profile?.first_name?.trim() ||

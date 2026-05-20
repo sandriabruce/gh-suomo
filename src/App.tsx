@@ -41,7 +41,7 @@ const App = () => (
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-            <Route path="/app" element={<ProtectedRoute><AppShell /></ProtectedRoute>}>
+            <Route path="/app" element={<ProtectedRoute requireCompleteProfile={false}><AppShell /></ProtectedRoute>}>
               <Route index element={<Navigate to="/app/discover" replace />} />
               <Route path="discover" element={<Discover />} />
               <Route path="matches" element={<Matches />} />

@@ -1,4 +1,4 @@
-import { NavLink, Outlet, Link, useNavigate } from "react-router-dom";
+import { Navigate, NavLink, Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { Compass, Heart, MessageCircle, ShieldCheck, User, ShieldAlert, Crown, Menu, LogOut, Settings } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
@@ -29,9 +29,16 @@ const tabs = [
 export function AppShell() {
   const { isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
-  const { data: profile } = useProfile();
+  const location = useLocation();
+  const { data: profile, isLoading: profileLoading } = useProfile();
   const { data: unread } = useUnreadMessages();
   const allTabs = isAdmin ? [...tabs, { to: "/app/admin", label: "Admin", icon: Crown }] : tabs;
+  const shouldGateProfile = !location.pathname.startsWith("/app/admin");
+  const profileIncomplete = shouldGateProfile && !profileLoading && (
+    !profile?.first_name?.trim() ||
+    !profile?.gender ||
+    !profile?.interested_in
+  );
 
   // One-time toast confirming Premium activation + new trial end date.
   useEffect(() => {
@@ -82,7 +89,13 @@ export function AppShell() {
         </DropdownMenu>
       </header>
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-4 pb-24">
-        <Outlet />
+        {shouldGateProfile && profileLoading ? (
+          <div className="flex min-h-[50vh] items-center justify-center text-sm text-muted-foreground">Loading…</div>
+        ) : profileIncomplete ? (
+          <Navigate to="/onboarding" replace />
+        ) : (
+          <Outlet />
+        )}
       </main>
       <nav className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 backdrop-blur">
         <div className="mx-auto flex max-w-2xl items-stretch justify-between px-2">
