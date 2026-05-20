@@ -332,13 +332,39 @@ export default function Discover() {
           {openPerson && (
             <>
               {openPerson.photos.length > 0 && (
-                <div style={{ height: "55vh", overflow: "hidden", width: "100%" }}>
-                  <img
-                    src={openPerson.photos[0]}
-                    alt={`${openPerson.first_name ?? "Member"} photo`}
-                    style={{ width: "100%", height: "100%", objectFit: "contain", objectPosition: "center center" }}
-                    onContextMenu={(e) => e.preventDefault()}
-                  />
+                <div className="relative" style={{ height: "55vh", width: "100%" }}>
+                  <Carousel
+                    setApi={setGalleryApi}
+                    opts={{ align: "start", loop: openPerson.photos.length > 1 }}
+                    className="h-full w-full"
+                  >
+                    <CarouselContent className="h-full">
+                      {openPerson.photos.map((photo, idx) => (
+                        <CarouselItem key={idx} className="h-full basis-full">
+                          <div className="h-full w-full">
+                            <img
+                              src={photo}
+                              alt={`${openPerson.first_name ?? "Member"} photo ${idx + 1}`}
+                              className="h-full w-full object-contain object-center no-snap"
+                              onContextMenu={(e) => e.preventDefault()}
+                            />
+                          </div>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                  </Carousel>
+                  {openPerson.photos.length > 1 && (
+                    <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
+                      {openPerson.photos.map((_, idx) => (
+                        <span
+                          key={idx}
+                          className={`block h-2 w-2 rounded-full transition-colors ${
+                            idx === galleryIndex ? "bg-white" : "bg-white/50"
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
               <div className="p-5 space-y-4">
