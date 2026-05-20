@@ -204,55 +204,84 @@ export default function Chat() {
 
     // If the other party in this match is a seed profile, trigger an AI reply.
     try {
-      const { data: match } = await supabase
+      console.log("[seed-reply] start: looking up match", matchId);
+      const { data: match, error: matchErr } = await supabase
         .from("matches")
         .select("user_a, user_b")
         .eq("id", matchId)
         .maybeSingle();
-      if (match) {
-        const receiver_id = match.user_a === user.id ? match.user_b : match.user_a;
-        const { data: receiver } = await supabase
-          .from("profiles")
-          .select("is_seed")
-          .eq("id", receiver_id)
-          .maybeSingle();
-        if (receiver?.is_seed) {
-          const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-seed-response`;
-          const { data: { session } } = await supabase.auth.getSession();
-          const payload = {
-            sender_id: user.id,
-            receiver_id,
-            match_id: matchId,
-            message_content: content,
-          };
-          console.log("[seed-reply] POST →", url, payload);
-          fetch(url, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
-              Authorization: `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-            },
-            body: JSON.stringify(payload),
-            keepalive: true,
-          })
-            .then(async (res) => {
-              const text = await res.text().catch(() => "");
-              console.log("[seed-reply] response", res.status, text);
-              if (res.ok) {
-                setTimeout(
-                  () => qc.invalidateQueries({ queryKey: ["messages", matchId] }),
-                  2000,
-                );
-              }
-            })
-            .catch((err) => {
-              console.warn("[seed-reply] fetch failed", err);
-            });
-          console.log("[seed-reply] fetch dispatched");
-        }
+      if (matchErr) console.warn("[seed-reply] match lookup error", matchErr);
+      console.log("[seed-reply] match row", match);
+      if (!match) return;
+
+      const receiver_id = match.user_a === user.id ? match.user_b : match.user_a;
+      const { data: receiver, error: recvErr } = await supabase
+        .from("profiles")
+        .select("is_seed")
+        .eq("id", receiver_id)
+        .maybeSingle();
+      if (recvErr) console.warn("[seed-reply] receiver lookup error", recvErr);
+      console.log("[seed-reply] receiver", receiver_id, receiver);
+      if (!receiver?.is_seed) {
+        console.log("[seed-reply] receiver is not a seed; skipping");
+        return;
       }
-    } catch { /* non-fatal */ }
+
+      const supaUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey =
+        import.meta.env.VITE_SUPABASE_ANON_KEY ??
+        import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      console.log("[seed-reply] env", {
+        hasUrl: !!supaUrl,
+        urlHost: supaUrl ? new URL(supaUrl).host : null,
+        hasAnonKey: !!anonKey,
+        anonKeyLen: anonKey?.length ?? 0,
+      });
+      if (!supaUrl || !anonKey) {
+        console.error("[seed-reply] missing VITE_SUPABASE_URL or anon/publishable key");
+        return;
+      }
+
+      console.log("[seed-reply] calling getSession()");
+      const sessionResult = await supabase.auth.getSession();
+      console.log("[seed-reply] getSession result", {
+        hasSession: !!sessionResult.data.session,
+        error: sessionResult.error,
+      });
+      const session = sessionResult.data.session;
+
+      const url = `${supaUrl}/functions/v1/generate-seed-response`;
+      const payload = {
+        sender_id: user.id,
+        receiver_id,
+        match_id: matchId,
+        message_content: content,
+      };
+      console.log("[seed-reply] POST →", url, payload);
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: anonKey,
+            Authorization: `Bearer ${session?.access_token ?? anonKey}`,
+          },
+          body: JSON.stringify(payload),
+        });
+        const text = await res.text().catch(() => "");
+        console.log("[seed-reply] response", res.status, text);
+        if (res.ok) {
+          setTimeout(
+            () => qc.invalidateQueries({ queryKey: ["messages", matchId] }),
+            2000,
+          );
+        }
+      } catch (fetchErr) {
+        console.error("[seed-reply] fetch threw", fetchErr);
+      }
+    } catch (outerErr) {
+      console.error("[seed-reply] outer error", outerErr);
+    }
   }
 
   return (
