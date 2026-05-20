@@ -3,6 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  type CarouselApi,
+} from "@/components/ui/carousel";
 import { ShieldCheck } from "lucide-react";
 
 /**
@@ -53,6 +59,20 @@ function sanitize(raw: Record<string, unknown> | null): PublicProfile | null {
 export function ProfilePreview({ userId }: { userId: string }) {
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [api, setApi] = useState<CarouselApi | null>(null);
+  const [current, setCurrent] = useState(0);
+
+  useEffect(() => {
+    if (!api) return;
+    setCurrent(api.selectedScrollSnap());
+    const onSelect = () => setCurrent(api.selectedScrollSnap());
+    api.on("select", onSelect);
+    api.on("reInit", onSelect);
+    return () => {
+      api.off("select", onSelect);
+      api.off("reInit", onSelect);
+    };
+  }, [api]);
 
   useEffect(() => {
     let cancelled = false;
@@ -91,18 +111,42 @@ export function ProfilePreview({ userId }: { userId: string }) {
 
   const photos = Array.isArray(profile.photos) ? (profile.photos as string[]) : [];
   const interests = Array.isArray(profile.interests) ? (profile.interests as string[]) : [];
-  const cover = photos[0];
 
   return (
     <Card className="rounded-2xl overflow-hidden">
-      {cover && (
-        <div className="aspect-[4/3] w-full bg-muted">
-          <img
-            src={cover}
-            alt={profile.first_name ?? "Member photo"}
-            className="h-full w-full object-cover object-center no-snap"
-            onContextMenu={(e) => e.preventDefault()}
-          />
+      {photos.length > 0 && (
+        <div className="relative">
+          <Carousel setApi={setApi} opts={{ loop: photos.length > 1 }}>
+            <CarouselContent className="ml-0">
+              {photos.map((src, idx) => (
+                <CarouselItem key={`${src}-${idx}`} className="pl-0">
+                  <div className="aspect-[4/3] w-full bg-muted">
+                    <img
+                      src={src}
+                      alt={`${profile.first_name ?? "Member"} photo ${idx + 1}`}
+                      className="h-full w-full object-cover object-center no-snap"
+                      onContextMenu={(e) => e.preventDefault()}
+                      draggable={false}
+                    />
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+          </Carousel>
+          {photos.length > 1 && (
+            <div className="pointer-events-none absolute inset-x-0 bottom-2 flex justify-center gap-1.5">
+              {photos.map((_, idx) => (
+                <span
+                  key={idx}
+                  className={`h-1.5 rounded-full transition-all ${
+                    idx === current
+                      ? "w-4 bg-white"
+                      : "w-1.5 bg-white/60"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
         </div>
       )}
       <div className="p-4 space-y-2">
