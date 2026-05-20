@@ -7,6 +7,8 @@ import { useEntitlements } from "@/hooks/useEntitlements";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
+import { Logo } from "@/components/brand/Logo";
+import { Compass } from "lucide-react";
 
 export default function Matches() {
   const { limits } = useEntitlements();
@@ -46,10 +48,17 @@ export default function Matches() {
       {isLoading ? (
         <Card className="rounded-2xl p-6 text-center text-sm text-muted-foreground">Loading…</Card>
       ) : !matches || matches.length === 0 ? (
-        <>
-          <p className="text-sm text-muted-foreground">No matches yet. Start swiping in Discover.</p>
-          <Card className="rounded-2xl p-6 text-center text-sm text-muted-foreground">Matches will appear here.</Card>
-        </>
+        <Card className="flex flex-col items-center gap-4 rounded-2xl p-8 text-center">
+          <Logo size="lg" />
+          <p className="text-sm text-muted-foreground">No matches yet.</p>
+          <Link
+            to="/app/discover"
+            className="inline-flex items-center gap-2 rounded-full bg-ghana-green px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-ghana-green/90"
+          >
+            <Compass className="h-4 w-4" />
+            Start swiping
+          </Link>
+        </Card>
       ) : (
         <div className="space-y-2">
           {matches.map((m) => {
