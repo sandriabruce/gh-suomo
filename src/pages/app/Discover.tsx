@@ -335,15 +335,15 @@ export default function Discover() {
       <InstallBanner />
 
       <Sheet open={!!openPerson} onOpenChange={(o) => !o && setOpenId(null)}>
-        <SheetContent side="bottom" className="max-h-[92vh] overflow-y-auto rounded-t-3xl p-0">
+        <SheetContent side="bottom" className="flex h-[92dvh] max-h-[92dvh] flex-col overflow-hidden rounded-t-3xl p-0">
           {openPerson && (
             <>
               {openPerson.photos.length > 0 && (
-                <div className="relative" style={{ height: "42vh", width: "100%" }}>
+                <div className="relative h-[34dvh] min-h-[200px] shrink-0 sm:h-[38dvh] sm:max-h-[360px]">
                   <Carousel
                     setApi={setGalleryApi}
                     opts={{ align: "start", loop: openPerson.photos.length > 1 }}
-                    className="h-full w-full"
+                    className="h-full w-full [&>div]:h-full"
                   >
                     <CarouselContent className="h-full">
                       {openPerson.photos.map((photo, idx) => (
@@ -380,7 +380,7 @@ export default function Discover() {
                   )}
                 </div>
               )}
-              <div className="p-5 space-y-4">
+              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-5 pb-24">
                 <SheetHeader className="text-left">
                   <SheetTitle className="font-display text-2xl text-ghana-brown flex items-center gap-2">
                     <span>
