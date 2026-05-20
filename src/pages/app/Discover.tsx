@@ -1,7 +1,7 @@
 import { SafetyBanner } from "@/components/safety/SafetyBanner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Heart, X, MessageCircle, BadgeCheck, ShieldAlert, Flag, Ban } from "lucide-react";
+import { Heart, MessageCircle, BadgeCheck, ShieldAlert, Flag, Ban } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -61,7 +61,7 @@ export default function Discover() {
   const navigate = useNavigate();
   const { data: profile } = useProfile();
   const { limits, plan, trial } = useEntitlements();
-  const [i, setI] = useState(0);
+  const [, setI] = useState(0);
   const [likes, setLikes] = useState(0);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -157,8 +157,6 @@ export default function Discover() {
     return () => { cancelled = true; };
   }, [targetGenders, blockedIds]);
 
-  const person = candidates.length > 0 ? candidates[i % candidates.length] : null;
-  const cover = person?.photos?.[0];
   const openPerson = candidates.find((c) => c.id === openId) ?? null;
 
   // Fetch the existing match (if any) with the open profile to surface status.
@@ -192,13 +190,6 @@ export default function Discover() {
           ? "liked_by_you"
           : "none"
     : "none";
-
-  const handleLike = () => {
-    if (limitReached) return;
-    if (person) setLikedIds((s) => new Set(s).add(person.id));
-    setLikes((n) => n + 1);
-    setI((x) => x + 1);
-  };
 
   const handleLikeFromSheet = (id: string) => {
     if (limitReached) return;
