@@ -51,6 +51,7 @@ type Candidate = {
   bio: string | null;
   photos: string[];
   interests: string[];
+  prompts: { q: string; a: string }[];
   ethnicity: string | null;
   verified: boolean;
 };
@@ -116,7 +117,7 @@ export default function Discover() {
       setLoading(true);
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, first_name, age, location, bio, photos, interests, ethnicity, verified")
+        .select("id, first_name, age, location, bio, photos, interests, prompts, ethnicity, verified")
         .eq("is_seed", true)
         .eq("banned", false)
         .in("gender", targetGenders)
@@ -133,6 +134,12 @@ export default function Discover() {
           bio: row.bio as string | null,
           photos: Array.isArray(row.photos) ? (row.photos as string[]) : [],
           interests: Array.isArray(row.interests) ? (row.interests as string[]) : [],
+          prompts: Array.isArray(row.prompts)
+            ? ((row.prompts as unknown[]).filter(
+                (p): p is { q: string; a: string } =>
+                  !!p && typeof p === "object" && "q" in p && "a" in p,
+              ))
+            : [],
           ethnicity: (row.ethnicity as string | null) ?? null,
           verified: !!row.verified,
         }));
@@ -433,6 +440,18 @@ export default function Discover() {
                         <Badge key={tag} variant="secondary" className="rounded-full">{tag}</Badge>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {openPerson.prompts.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Prompts</h4>
+                    {openPerson.prompts.map((p, idx) => (
+                      <div key={idx} className="rounded-xl border bg-muted/30 p-3">
+                        <p className="text-xs font-medium text-muted-foreground">{p.q}</p>
+                        <p className="mt-1 text-sm text-foreground whitespace-pre-wrap">{p.a}</p>
+                      </div>
+                    ))}
                   </div>
                 )}
 

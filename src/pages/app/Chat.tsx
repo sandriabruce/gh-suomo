@@ -8,7 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Lock } from "lucide-react";
+import { Lock, ArrowLeft } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { markMatchRead } from "@/hooks/useUnreadMessages";
 
@@ -88,6 +89,27 @@ export default function Chat() {
       return data;
     },
   });
+
+  const otherUserId = matchRow && user
+    ? matchRow.user_a === user.id ? matchRow.user_b : matchRow.user_a
+    : null;
+
+  const { data: otherProfile } = useQuery({
+    queryKey: ["chat-partner", otherUserId],
+    enabled: !!otherUserId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, first_name, age, photos")
+        .eq("id", otherUserId!)
+        .maybeSingle();
+      return data;
+    },
+  });
+  const partnerPhoto = Array.isArray(otherProfile?.photos)
+    ? (otherProfile!.photos[0] as string | undefined)
+    : undefined;
+  const partnerName = otherProfile?.first_name ?? "Match";
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
@@ -329,6 +351,26 @@ export default function Chat() {
     <div className="flex flex-col gap-3">
       <SafetyBanner variant="warn" message="Never share phone numbers, WhatsApp, or money requests. Report anything suspicious." />
       {trial.active && <TrialBadge />}
+      <div className="flex items-center gap-3 rounded-2xl border bg-card p-3">
+        <Button
+          asChild
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 shrink-0 text-ghana-brown"
+          aria-label="Back to matches"
+        >
+          <Link to="/app/matches"><ArrowLeft className="h-5 w-5" /></Link>
+        </Button>
+        <Avatar className="h-10 w-10">
+          {partnerPhoto && <AvatarImage src={partnerPhoto} alt={partnerName} className="object-cover" />}
+          <AvatarFallback>{partnerName.slice(0, 1).toUpperCase()}</AvatarFallback>
+        </Avatar>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-display text-base font-semibold text-ghana-brown">
+            {partnerName}{otherProfile?.age ? `, ${otherProfile.age}` : ""}
+          </p>
+        </div>
+      </div>
       <div ref={scrollRef} className="min-h-[300px] max-h-[55vh] overflow-y-auto rounded-2xl border bg-card p-3 space-y-2">
         {messagesError ? (
           <p className="text-center text-sm text-destructive py-8">
