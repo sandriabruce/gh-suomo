@@ -59,7 +59,7 @@ export const PROMPTS_CATALOG: ModeTagged[] = [
   { label: "My family means to me…",                       modes: ["romance"] },
   { label: "Something not many people know about me…",     modes: ["romance", "spark"] },
   { label: "If I could move anywhere in Ghana, I would choose…", modes: ["romance", "spark"] },
-  // Spark-only
+  // Spicy-only (internal mode key kept as "spark")
   { label: "What I want from a casual connection is…",     modes: ["spark"] },
   { label: "My idea of a memorable night out is…",         modes: ["spark"] },
 ];
