@@ -8,10 +8,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Lock, ArrowLeft } from "lucide-react";
+import { Lock, ArrowLeft, ImagePlus, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { markMatchRead } from "@/hooks/useUnreadMessages";
+import { markMatchRead, useUnreadMessages } from "@/hooks/useUnreadMessages";
+import { Card } from "@/components/ui/card";
+import { ProfileDetailSheet } from "@/components/profile/ProfileDetailSheet";
+
+const IMAGE_MSG_PREFIX = "[image]";
+function isImageMessage(content: string) {
+  return content.startsWith(IMAGE_MSG_PREFIX);
+}
+function imageUrlFrom(content: string) {
+  return content.slice(IMAGE_MSG_PREFIX.length).trim();
+}
 
 const FREE_MESSAGE_LIMIT = 3;
 
