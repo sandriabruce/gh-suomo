@@ -466,6 +466,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      recent_message_count: {
+        Args: { _user_id: string; _window?: string }
+        Returns: number
+      }
     }
     Enums: {
       app_mode: "romance" | "spark"
