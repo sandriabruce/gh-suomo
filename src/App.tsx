@@ -17,6 +17,7 @@ import Discover from "./pages/app/Discover";
 import Matches from "./pages/app/Matches";
 import Chat from "./pages/app/Chat";
 import Verify from "./pages/app/Verify";
+import Spicy from "./pages/app/Spicy";
 import Profile from "./pages/app/Profile";
 import EditProfile from "./pages/app/EditProfile";
 import Safety from "./pages/app/Safety";
@@ -66,6 +67,7 @@ const App = () => (
               <Route path="chat" element={guard(<Chat />, "Chat")} />
               <Route path="chat/:id" element={guard(<Chat />, "Chat")} />
               <Route path="verify" element={guard(<Verify />, "Verify")} />
+              <Route path="spicy" element={guard(<Spicy />, "Spicy Mode")} />
               <Route path="profile" element={guard(<Profile />, "Profile")} />
               <Route path="profile/edit" element={guard(<EditProfile />, "Edit profile")} />
               <Route path="safety" element={guard(<Safety />, "Safety")} />
