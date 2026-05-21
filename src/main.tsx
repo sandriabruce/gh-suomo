@@ -1,6 +1,9 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
+import { bootstrapStoredSpicyMode } from "./lib/spicyRuntimeTheme";
 import "./index.css";
+
+bootstrapStoredSpicyMode();
 
 createRoot(document.getElementById("root")!).render(<App />);
 
