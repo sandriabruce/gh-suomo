@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { seedClient } from "@/integrations/supabase/seedClient";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { CoupleCard, SAMPLE_COUPLES } from "@/components/brand/CoupleCard";
@@ -162,7 +163,7 @@ export default function Discover() {
     queryFn: async ({ pageParam }) => {
       const from = (pageParam as number) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-      const { data, error } = await supabase
+      const { data, error } = await seedClient
         .from("profiles")
         .select("id, first_name, age, location, bio, photos, interests, prompts, ethnicity, verified")
         .eq("is_seed", true)
@@ -216,7 +217,7 @@ export default function Discover() {
     queryKey: ["match-with", user?.id, openId],
     enabled: !!user && !!openId,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data } = await seedClient
         .from("matches")
         .select("id,status,user_a,user_b")
         .or(`and(user_a.eq.${user!.id},user_b.eq.${openId!}),and(user_a.eq.${openId!},user_b.eq.${user!.id})`)
@@ -255,14 +256,14 @@ export default function Discover() {
     setOpeningChat(true);
     try {
       // Look for an existing match between the two users.
-      const { data: existing } = await supabase
+      const { data: existing } = await seedClient
         .from("matches")
         .select("id,user_a,user_b")
         .or(`and(user_a.eq.${user.id},user_b.eq.${otherId}),and(user_a.eq.${otherId},user_b.eq.${user.id})`)
         .limit(1);
       let matchId = existing?.[0]?.id;
       if (!matchId) {
-        const { data: created, error } = await supabase
+        const { data: created, error } = await seedClient
           .from("matches")
           .insert({ user_a: user.id, user_b: otherId, status: "active", score: 80 })
           .select("id")

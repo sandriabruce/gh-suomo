@@ -5,6 +5,7 @@ import { SafetyBanner } from "@/components/safety/SafetyBanner";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { TrialBadge } from "@/components/plan/TrialBadge";
 import { supabase } from "@/integrations/supabase/client";
+import { seedClient } from "@/integrations/supabase/seedClient";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -64,7 +65,7 @@ export default function Chat() {
     queryKey: ["messages", matchId],
     enabled: !!matchId && !!user,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await seedClient
         .from("messages")
         .select("id,sender_id,content,created_at,read_at")
         .eq("match_id", matchId!)
@@ -78,7 +79,7 @@ export default function Chat() {
           error.code === "42703";
         if (missingReadAt) {
           console.warn("[messages] read_at missing, retrying without it", error);
-          const retry = await supabase
+          const retry = await seedClient
             .from("messages")
             .select("id,sender_id,content,created_at")
             .eq("match_id", matchId!)
@@ -96,7 +97,7 @@ export default function Chat() {
     queryKey: ["match", matchId],
     enabled: !!matchId && !!user,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await seedClient
         .from("matches")
         .select("id,user_a,user_b,status,spicy")
         .eq("id", matchId!)
@@ -117,7 +118,7 @@ export default function Chat() {
     queryKey: ["chat-partner", otherUserId],
     enabled: !!otherUserId,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data } = await seedClient
         .from("profiles")
         .select("id, first_name, age, photos")
         .eq("id", otherUserId!)
@@ -162,7 +163,7 @@ export default function Chat() {
       (m) => m.sender_id !== user.id && !m.read_at,
     );
     if (unreadIncoming.length > 0) {
-      supabase
+      seedClient
         .from("messages")
         .update({ read_at: new Date().toISOString() })
         .in("id", unreadIncoming.map((m) => m.id))
@@ -175,7 +176,7 @@ export default function Chat() {
   useEffect(() => {
     if (!matchId) return;
     const channelName = `messages-${matchId}-${Math.random().toString(36).slice(2, 8)}`;
-    const channel = supabase
+    const channel = seedClient
       .channel(channelName)
       .on(
         "postgres_changes",
@@ -203,7 +204,7 @@ export default function Chat() {
       );
     channel.subscribe();
     return () => {
-      supabase.removeChannel(channel);
+      seedClient.removeChannel(channel);
     };
   }, [matchId, qc]);
 
@@ -254,7 +255,7 @@ export default function Chat() {
     if (!content || !user || !matchId) return false;
     if (content === draft.trim()) setSending(true);
     const isImage = isImageMessage(content);
-    let { data: inserted, error } = await supabase
+    let { data: inserted, error } = await seedClient
       .from("messages")
       .insert({ match_id: matchId, sender_id: user.id, content })
       .select("id,sender_id,content,created_at,read_at")
@@ -265,7 +266,7 @@ export default function Chat() {
         error.code === "PGRST204" ||
         error.code === "42703";
       if (missingReadAt) {
-        const retry = await supabase
+        const retry = await seedClient
           .from("messages")
           .insert({ match_id: matchId, sender_id: user.id, content })
           .select("id,sender_id,content,created_at")
@@ -332,7 +333,7 @@ export default function Chat() {
     // If the other party in this match is a seed profile, trigger an AI reply.
     try {
       console.log("[seed-reply] start: looking up match", matchId);
-      const { data: match, error: matchErr } = await supabase
+      const { data: match, error: matchErr } = await seedClient
         .from("matches")
         .select("user_a, user_b")
         .eq("id", matchId)
@@ -342,7 +343,7 @@ export default function Chat() {
       if (!match) return;
 
       const receiver_id = match.user_a === user.id ? match.user_b : match.user_a;
-      const { data: receiver, error: recvErr } = await supabase
+      const { data: receiver, error: recvErr } = await seedClient
         .from("profiles")
         .select("is_seed")
         .eq("id", receiver_id)

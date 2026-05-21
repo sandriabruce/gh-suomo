@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { seedClient } from "@/integrations/supabase/seedClient";
 import { useAuth } from "@/hooks/useAuth";
 
 export function lastReadKey(userId: string, matchId: string) {
@@ -22,7 +23,7 @@ export function useUnreadMessages() {
     enabled: !!user,
     queryFn: async () => {
       const uid = user!.id;
-      const { data: matches, error } = await supabase
+      const { data: matches, error } = await seedClient
         .from("matches")
         .select("id, user_a, user_b")
         .or(`user_a.eq.${uid},user_b.eq.${uid}`);
@@ -35,7 +36,7 @@ export function useUnreadMessages() {
           const sinceStr = (() => {
             try { return localStorage.getItem(lastReadKey(uid, m.id)); } catch { return null; }
           })();
-          let q = supabase
+          let q = seedClient
             .from("messages")
             .select("id", { count: "exact", head: true })
             .eq("match_id", m.id)
@@ -57,7 +58,7 @@ export function useUnreadMessages() {
   useEffect(() => {
     if (!user) return;
     const channelName = `unread-messages-${user.id}-${Math.random().toString(36).slice(2, 8)}`;
-    const channel = supabase
+    const channel = seedClient
       .channel(channelName)
       .on(
         "postgres_changes",
@@ -68,7 +69,7 @@ export function useUnreadMessages() {
       );
     channel.subscribe();
     return () => {
-      supabase.removeChannel(channel);
+      seedClient.removeChannel(channel);
     };
   }, [user, qc]);
 

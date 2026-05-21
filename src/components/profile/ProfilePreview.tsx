@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { seedClient } from "@/integrations/supabase/seedClient";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -78,7 +78,7 @@ export function ProfilePreview({ userId }: { userId: string }) {
     let cancelled = false;
     (async () => {
       setLoading(true);
-      const { data } = await supabase
+      const { data } = await seedClient
         .from("profiles_public")
         .select(ALLOWED_FIELDS.join(","))
         .eq("id", userId)
