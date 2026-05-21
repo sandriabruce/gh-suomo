@@ -8,10 +8,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Lock, ArrowLeft } from "lucide-react";
+import { Lock, ArrowLeft, ImagePlus, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { markMatchRead } from "@/hooks/useUnreadMessages";
+import { markMatchRead, useUnreadMessages } from "@/hooks/useUnreadMessages";
+import { Card } from "@/components/ui/card";
+import { ProfileDetailSheet } from "@/components/profile/ProfileDetailSheet";
+
+const IMAGE_MSG_PREFIX = "[image]";
+function isImageMessage(content: string) {
+  return content.startsWith(IMAGE_MSG_PREFIX);
+}
+function imageUrlFrom(content: string) {
+  return content.slice(IMAGE_MSG_PREFIX.length).trim();
+}
 
 const FREE_MESSAGE_LIMIT = 3;
 
@@ -32,6 +42,9 @@ export default function Chat() {
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [seedTyping, setSeedTyping] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const seedReplyTimerRef = useRef<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -205,14 +218,7 @@ export default function Chat() {
   }, [overFreeLimit, draft, draftKey, navigate]);
 
   if (!matchId) {
-    return (
-      <div className="space-y-4">
-        <SafetyBanner variant="warn" message="Never share phone numbers, WhatsApp, or money requests. Report anything suspicious." />
-        {trial.active && <TrialBadge />}
-        <h1 className="heading-gold font-display text-2xl font-bold">Chat</h1>
-        <p className="text-sm text-muted-foreground">Open a conversation from Matches.</p>
-      </div>
-    );
+    return <ChatList />;
   }
 
   if (!matchLoading && !matchRow) {
@@ -234,16 +240,19 @@ export default function Chat() {
   }
 
   async function send() {
-    if (!draft.trim() || !user || !matchId) return;
-    setSending(true);
     const content = draft.trim();
+    if (!content) return;
+    const ok = await sendContent(content);
+    if (ok) triggerSeedReply(content);
+  }
+
+  async function sendContent(content: string): Promise<boolean> {
+    if (!content || !user || !matchId) return false;
+    if (content === draft.trim()) setSending(true);
+    const isImage = isImageMessage(content);
     let { data: inserted, error } = await supabase
       .from("messages")
-      .insert({
-        match_id: matchId,
-        sender_id: user.id,
-        content,
-      })
+      .insert({ match_id: matchId, sender_id: user.id, content })
       .select("id,sender_id,content,created_at,read_at")
       .single();
     if (error) {
@@ -269,17 +278,53 @@ export default function Chat() {
     if (error) {
       console.error("send message failed", error);
       toast.error(`Message not sent: ${error.message}`);
-      return;
+      return false;
     }
-    setDraft("");
-    if (draftKey) { try { localStorage.removeItem(draftKey); } catch { /* ignore */ } }
+    if (!isImage) {
+      setDraft("");
+      if (draftKey) { try { localStorage.removeItem(draftKey); } catch { /* ignore */ } }
+    }
     if (inserted) {
       qc.setQueryData<ChatMessage[]>(["messages", matchId], (current = []) => (
-        current.some((m) => m.id === inserted.id) ? current : [...current, inserted]
+        current.some((m) => m.id === inserted!.id) ? current : [...current, inserted!]
       ));
     }
     qc.invalidateQueries({ queryKey: ["messages", matchId] });
+    return true;
+  }
 
+  async function uploadImage(file: File) {
+    if (!user || !matchId) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file.");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("Image is too large (max 8MB).");
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+      const path = `${user.id}/chat-images/${matchId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("profile-photos")
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("profile-photos").getPublicUrl(path);
+      const url = pub.publicUrl;
+      await sendContent(`${IMAGE_MSG_PREFIX}${url}`);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error("upload image failed", e);
+      toast.error(`Photo not sent: ${msg}`);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function triggerSeedReply(content: string) {
+    if (!user || !matchId) return;
     // If the other party in this match is a seed profile, trigger an AI reply.
     try {
       console.log("[seed-reply] start: looking up match", matchId);
@@ -381,18 +426,32 @@ export default function Chat() {
           className="h-9 w-9 shrink-0 bg-ghana-gold text-ghana-brown hover:bg-ghana-gold/90"
           aria-label="Back to matches"
         >
-          <Link to="/app/matches"><ArrowLeft className="h-5 w-5" /></Link>
+          <Link to="/app/chat"><ArrowLeft className="h-5 w-5" /></Link>
         </Button>
-        <Avatar className="h-10 w-10">
-          {partnerPhoto && <AvatarImage src={partnerPhoto} alt={partnerName} className="object-cover" />}
-          <AvatarFallback>{partnerName.slice(0, 1).toUpperCase()}</AvatarFallback>
-        </Avatar>
-        <div className="min-w-0 flex-1">
-          <p className="name-gold truncate font-display text-base font-semibold">
-            {partnerName}{otherProfile?.age ? `, ${otherProfile.age}` : ""}
-          </p>
-        </div>
+        <button
+          type="button"
+          onClick={() => otherUserId && setProfileOpen(true)}
+          className="flex min-w-0 flex-1 items-center gap-3 rounded-xl px-1 py-1 text-left hover:bg-muted/40"
+          aria-label={`Open ${partnerName}'s profile`}
+        >
+          <Avatar className="h-10 w-10">
+            {partnerPhoto && <AvatarImage src={partnerPhoto} alt={partnerName} className="object-cover" />}
+            <AvatarFallback>{partnerName.slice(0, 1).toUpperCase()}</AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1">
+            <p className="name-gold truncate font-display text-base font-semibold">
+              {partnerName}{otherProfile?.age ? `, ${otherProfile.age}` : ""}
+            </p>
+            <p className="truncate text-[10px] text-muted-foreground">Tap to view profile</p>
+          </div>
+        </button>
       </div>
+      <ProfileDetailSheet
+        userId={otherUserId}
+        open={profileOpen}
+        onOpenChange={setProfileOpen}
+        matchId={matchId}
+      />
       <div ref={scrollRef} className="min-h-[300px] max-h-[55vh] overflow-y-auto rounded-2xl border bg-card p-3 space-y-2">
         {messagesError ? (
           <p className="text-center text-sm text-destructive py-8">
@@ -411,9 +470,25 @@ export default function Chat() {
               !arr.slice(i + 1).some((n) => n.sender_id === user?.id && n.read_at);
             return (
               <div key={m.id} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
-                <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${mine ? "bg-ghana-gold text-ghana-brown" : "bg-muted text-foreground"}`}>
-                  {m.content}
-                </div>
+                {isImageMessage(m.content) ? (
+                  <a
+                    href={imageUrlFrom(m.content)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="max-w-[70%] overflow-hidden rounded-2xl border bg-muted"
+                  >
+                    <img
+                      src={imageUrlFrom(m.content)}
+                      alt="Shared"
+                      loading="lazy"
+                      className="block max-h-72 w-full object-cover"
+                    />
+                  </a>
+                ) : (
+                  <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${mine ? "bg-ghana-gold text-ghana-brown" : "bg-muted text-foreground"}`}>
+                    {m.content}
+                  </div>
+                )}
                 {isLastReadMine && (
                   <span className="mt-0.5 pr-1 text-[10px] text-muted-foreground">
                     Read {new Date(m.read_at!).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
@@ -471,6 +546,29 @@ export default function Chat() {
           className="flex gap-2"
           onSubmit={(e) => { e.preventDefault(); send(); }}
         >
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) uploadImage(f);
+              e.target.value = "";
+            }}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            disabled={uploading || sending}
+            onClick={() => fileInputRef.current?.click()}
+            aria-label="Send a photo"
+            className="shrink-0"
+          >
+            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+          </Button>
           <Input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
@@ -482,6 +580,106 @@ export default function Chat() {
             Send
           </Button>
         </form>
+      )}
+    </div>
+  );
+}
+
+function ChatList() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { data: unread } = useUnreadMessages();
+
+  const { data: convos, isLoading } = useQuery({
+    queryKey: ["chat-list", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const uid = user!.id;
+      const { data: rows, error } = await supabase
+        .from("matches")
+        .select("id, user_a, user_b, created_at")
+        .or(`user_a.eq.${uid},user_b.eq.${uid}`)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      const others = (rows ?? []).map((r) => (r.user_a === uid ? r.user_b : r.user_a));
+      if (others.length === 0) return [];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, first_name, age, photos")
+        .in("id", others);
+      const byId = new Map((profiles ?? []).map((p) => [p.id, p]));
+      // Fetch last message per match (best effort, sequential keeps it simple).
+      const enriched = await Promise.all(
+        (rows ?? []).map(async (r) => {
+          const { data: last } = await supabase
+            .from("messages")
+            .select("content, created_at, sender_id")
+            .eq("match_id", r.id)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          const otherId = r.user_a === uid ? r.user_b : r.user_a;
+          return { ...r, other: byId.get(otherId), last };
+        })
+      );
+      // Sort: most recent activity first.
+      enriched.sort((a, b) => {
+        const at = a.last?.created_at ?? a.created_at;
+        const bt = b.last?.created_at ?? b.created_at;
+        return new Date(bt).getTime() - new Date(at).getTime();
+      });
+      return enriched;
+    },
+  });
+
+  return (
+    <div className="space-y-4">
+      <SafetyBanner variant="warn" message="Never share phone numbers, WhatsApp, or money requests. Report anything suspicious." />
+      <h1 className="heading-gold font-display text-2xl font-bold">Chats</h1>
+      {isLoading ? (
+        <Card className="rounded-2xl p-6 text-center text-sm text-muted-foreground">Loading…</Card>
+      ) : !convos || convos.length === 0 ? (
+        <Card className="rounded-2xl p-6 text-center text-sm text-muted-foreground">
+          No conversations yet. Match with someone from Discover to start chatting.
+        </Card>
+      ) : (
+        <div className="space-y-2">
+          {convos.map((c) => {
+            const other = c.other as { first_name?: string; age?: number; photos?: unknown } | undefined;
+            const photo = Array.isArray(other?.photos) ? (other!.photos[0] as string | undefined) : undefined;
+            const name = other?.first_name ?? "Match";
+            const unreadCount = unread?.perMatch?.[c.id] ?? 0;
+            const lastPreview = c.last
+              ? (isImageMessage(c.last.content) ? "📷 Photo" : c.last.content)
+              : "Say hello 👋";
+            return (
+              <button
+                key={c.id}
+                type="button"
+                onClick={() => navigate(`/app/chat/${c.id}`)}
+                className="w-full text-left"
+              >
+                <Card className="flex items-center gap-3 rounded-2xl p-3 transition hover:bg-muted/40">
+                  <Avatar className="h-12 w-12">
+                    {photo && <AvatarImage src={photo} alt={name} className="object-cover" />}
+                    <AvatarFallback>{name.slice(0, 1).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <p className="name-gold truncate font-display text-base font-semibold">
+                      {name}{other?.age ? `, ${other.age}` : ""}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">{lastPreview}</p>
+                  </div>
+                  {unreadCount > 0 && (
+                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-ghana-red px-1.5 text-[11px] font-bold text-white">
+                      {unreadCount > 9 ? "9+" : unreadCount}
+                    </span>
+                  )}
+                </Card>
+              </button>
+            );
+          })}
+        </div>
       )}
     </div>
   );
