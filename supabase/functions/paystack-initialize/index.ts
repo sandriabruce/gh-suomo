@@ -14,6 +14,13 @@ const PLAN_AMOUNTS: Record<string, number> = {
   diamond: 350,
 };
 
+// Paystack plan codes — charges will be attached to the corresponding subscription plan.
+const PLAN_CODES: Record<string, string> = {
+  verified: "PLN_205chw5dpvabm1r",
+  premium: "PLN_bwuihuygourt6mk",
+  diamond: "PLN_mxxsrlm2cu9lct6",
+};
+
 type Plan = keyof typeof PLAN_AMOUNTS;
 
 Deno.serve(async (req) => {
@@ -74,6 +81,7 @@ Deno.serve(async (req) => {
         currency: "GHS",
         reference,
         mobile_money: { phone, provider: momoProvider },
+        plan: PLAN_CODES[plan],
         metadata: { user_id: userId, plan },
       }),
     });
