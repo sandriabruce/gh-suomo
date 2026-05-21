@@ -42,6 +42,9 @@ export default function Chat() {
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [seedTyping, setSeedTyping] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const seedReplyTimerRef = useRef<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
