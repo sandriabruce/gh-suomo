@@ -387,18 +387,32 @@ export default function Chat() {
           className="h-9 w-9 shrink-0 bg-ghana-gold text-ghana-brown hover:bg-ghana-gold/90"
           aria-label="Back to matches"
         >
-          <Link to="/app/matches"><ArrowLeft className="h-5 w-5" /></Link>
+          <Link to="/app/chat"><ArrowLeft className="h-5 w-5" /></Link>
         </Button>
-        <Avatar className="h-10 w-10">
-          {partnerPhoto && <AvatarImage src={partnerPhoto} alt={partnerName} className="object-cover" />}
-          <AvatarFallback>{partnerName.slice(0, 1).toUpperCase()}</AvatarFallback>
-        </Avatar>
-        <div className="min-w-0 flex-1">
-          <p className="name-gold truncate font-display text-base font-semibold">
-            {partnerName}{otherProfile?.age ? `, ${otherProfile.age}` : ""}
-          </p>
-        </div>
+        <button
+          type="button"
+          onClick={() => otherUserId && setProfileOpen(true)}
+          className="flex min-w-0 flex-1 items-center gap-3 rounded-xl px-1 py-1 text-left hover:bg-muted/40"
+          aria-label={`Open ${partnerName}'s profile`}
+        >
+          <Avatar className="h-10 w-10">
+            {partnerPhoto && <AvatarImage src={partnerPhoto} alt={partnerName} className="object-cover" />}
+            <AvatarFallback>{partnerName.slice(0, 1).toUpperCase()}</AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1">
+            <p className="name-gold truncate font-display text-base font-semibold">
+              {partnerName}{otherProfile?.age ? `, ${otherProfile.age}` : ""}
+            </p>
+            <p className="truncate text-[10px] text-muted-foreground">Tap to view profile</p>
+          </div>
+        </button>
       </div>
+      <ProfileDetailSheet
+        userId={otherUserId}
+        open={profileOpen}
+        onOpenChange={setProfileOpen}
+        matchId={matchId}
+      />
       <div ref={scrollRef} className="min-h-[300px] max-h-[55vh] overflow-y-auto rounded-2xl border bg-card p-3 space-y-2">
         {messagesError ? (
           <p className="text-center text-sm text-destructive py-8">
