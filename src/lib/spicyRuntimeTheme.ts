@@ -96,6 +96,10 @@ export function applySpicyRuntimeTheme(active: boolean) {
     document.documentElement.style.removeProperty("--primary");
     document.documentElement.style.removeProperty("--foreground");
     document.documentElement.style.removeProperty("--border");
+    if (document.body) {
+      document.body.style.removeProperty("background");
+      document.body.style.removeProperty("min-height");
+    }
     return;
   }
 
