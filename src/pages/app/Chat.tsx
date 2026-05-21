@@ -218,14 +218,7 @@ export default function Chat() {
   }, [overFreeLimit, draft, draftKey, navigate]);
 
   if (!matchId) {
-    return (
-      <div className="space-y-4">
-        <SafetyBanner variant="warn" message="Never share phone numbers, WhatsApp, or money requests. Report anything suspicious." />
-        {trial.active && <TrialBadge />}
-        <h1 className="heading-gold font-display text-2xl font-bold">Chat</h1>
-        <p className="text-sm text-muted-foreground">Open a conversation from Matches.</p>
-      </div>
-    );
+    return <ChatList />;
   }
 
   if (!matchLoading && !matchRow) {
