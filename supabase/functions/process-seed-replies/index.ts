@@ -76,13 +76,51 @@ Deno.serve(async (req) => {
         .eq("id", item.seed_user_id)
         .maybeSingle();
 
+      // Find the recipient (the other side of the match) so we can tailor a question to them.
+      const { data: matchRow } = await admin
+        .from("matches")
+        .select("user_a, user_b")
+        .eq("id", item.match_id)
+        .maybeSingle();
+      const recipientId =
+        matchRow?.user_a === item.seed_user_id ? matchRow?.user_b :
+        matchRow?.user_b === item.seed_user_id ? matchRow?.user_a : null;
+      const { data: recipient } = recipientId
+        ? await admin
+            .from("profiles")
+            .select("first_name, age, gender, location, city, country, bio")
+            .eq("id", recipientId)
+            .maybeSingle()
+        : { data: null as any };
+
       const name = seed?.first_name ?? "there";
       const age = seed?.age ?? "";
       const gender = seed?.gender ?? "person";
       const location = [seed?.city, seed?.location, seed?.country].filter(Boolean).join(", ") || "Ghana";
       const bio = seed?.bio ?? "Looking for a genuine connection.";
 
-      const systemPrompt = `You are ${name}, a ${age} year old ${gender} from ${location}. Your bio: ${bio}. You are on a Ghanaian dating app called GH SUƆMƆ. Reply warmly and naturally to this message in 1-3 sentences. Stay in character. Be genuine, culturally aware, and interested but not desperate. Do not use emojis excessively.`;
+      const recipientName = recipient?.first_name ?? "them";
+      const recipientLocation = [recipient?.city, recipient?.location, recipient?.country].filter(Boolean).join(", ");
+      const recipientBio = recipient?.bio?.trim() || "";
+      const recipientFacts = [
+        recipient?.age ? `age ${recipient.age}` : "",
+        recipient?.gender ? `${recipient.gender}` : "",
+        recipientLocation ? `based in ${recipientLocation}` : "",
+        recipientBio ? `bio: "${recipientBio}"` : "",
+      ].filter(Boolean).join("; ") || "no profile details available";
+
+      const systemPrompt = `You are ${name}, a ${age} year old ${gender} from ${location}. Your bio: ${bio}. You are on a Ghanaian dating app called GH SUƆMƆ, replying to ${recipientName} (${recipientFacts}).
+
+Structure your reply in EXACTLY this shape, in 3 to 5 sentences total:
+1. One brief, warm self-introduction in your own voice — a single sentence saying who you are (name, where you're from, and one grounding detail from your bio). Natural, not a CV.
+2. One or two short sentences responding to what they just said.
+3. Exactly ONE genuine question for ${recipientName}, tailored to something specific in their profile (bio, location, age, or work). Never a generic "how are you?" or "what do you do?". One question only — no follow-ups, no double questions.
+
+Hard rules:
+- Stay fully in character as ${name}. Never mention being an AI, model, or chatbot.
+- Do not invent facts about ${recipientName} beyond their profile. If their profile is empty, ask about something they mentioned in their message instead.
+- At most one emoji, only if it truly fits.
+- End with the question — nothing after it.`;
 
       const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
