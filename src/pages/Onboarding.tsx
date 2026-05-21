@@ -151,7 +151,7 @@ export default function Onboarding() {
           case "first_name": return nextForm.first_name.trim().length >= 2;
           case "dob": {
             const a = calcAge(nextForm.date_of_birth);
-            return a !== null && a >= 36 && a <= 110;
+            return a !== null && a >= 35 && a <= 110;
           }
           case "gender": return !!nextForm.gender;
           case "interested_in": return !!nextForm.interested_in;
@@ -201,7 +201,7 @@ export default function Onboarding() {
         return form.first_name.trim().length >= 2 ? null : "Please enter your first name (at least 2 characters).";
       case "dob":
         if (age === null) return "Please enter a valid date of birth.";
-        if (age < 36) return "GH SUƆMƆ is for members 36 and older.";
+        if (age < 35) return "GH SUƆMƆ is for members 35 and older.";
         if (age > 110) return "Please enter a valid date of birth.";
         return null;
       case "gender": return form.gender ? null : "Please choose an option.";
@@ -384,7 +384,7 @@ export default function Onboarding() {
                   Let's set up your profile. It takes about 3 minutes — one question at a time, just like a friendly chat.
                 </p>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  GH SUƆMƆ is for grown people 36+. Take your time.
+                  GH SUƆMƆ is for grown people 35+. Take your time.
                 </p>
               </div>
             )}
@@ -400,16 +400,16 @@ export default function Onboarding() {
             )}
 
             {step === "dob" && (
-              <Question title="When's your birthday?" hint="We use this to confirm you're 36+. We'll only show your age, never your full date of birth.">
+              <Question title="When's your birthday?" hint="We use this to confirm you're 35+. We'll only show your age, never your full date of birth.">
                 <Input
                   type="date" value={form.date_of_birth}
                   max={new Date().toISOString().slice(0, 10)}
                   onChange={(e) => update("date_of_birth", e.target.value)}
                 />
-                {age !== null && age < 36 && (
-                  <p className="mt-2 text-xs text-destructive">GH SUƆMƆ is for members 36 and older.</p>
+                {age !== null && age < 35 && (
+                  <p className="mt-2 text-xs text-destructive">GH SUƆMƆ is for members 35 and older.</p>
                 )}
-                {age !== null && age >= 36 && (
+                {age !== null && age >= 35 && (
                   <p className="mt-2 text-xs text-muted-foreground">You're {age} — perfect.</p>
                 )}
               </Question>
