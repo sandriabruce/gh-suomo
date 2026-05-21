@@ -319,6 +319,41 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_renewal_reminders: {
+        Row: {
+          days_before: number
+          expires_at: string
+          id: string
+          sent_at: string
+          subscription_id: string
+          user_id: string
+        }
+        Insert: {
+          days_before: number
+          expires_at: string
+          id?: string
+          sent_at?: string
+          subscription_id: string
+          user_id: string
+        }
+        Update: {
+          days_before?: number
+          expires_at?: string
+          id?: string
+          sent_at?: string
+          subscription_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_renewal_reminders_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
           amount: number
