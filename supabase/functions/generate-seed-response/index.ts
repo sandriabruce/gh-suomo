@@ -25,6 +25,16 @@ Deno.serve(async (req) => {
 
     const admin = createClient(SUPABASE_URL, SERVICE_ROLE);
 
+    // Rate limit: skip if the seed has already sent 20+ messages in the last minute.
+    const { data: rateCount, error: rateErr } = await admin.rpc("recent_message_count", {
+      _user_id: receiver_id,
+    });
+    if (rateErr) {
+      console.warn("[seed-reply] rate check failed", rateErr);
+    } else if (typeof rateCount === "number" && rateCount >= 20) {
+      return json({ skipped: true, reason: "rate_limited", count: rateCount }, 200);
+    }
+
     // Verify receiver is a seed
     const { data: seed, error: seedErr } = await admin
       .from("profiles")
