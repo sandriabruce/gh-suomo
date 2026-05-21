@@ -184,3 +184,56 @@ Hard rules:
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 });
+
+function firstSentence(text: string | null | undefined): string {
+  if (!text) return "";
+  const trimmed = text.trim();
+  const m = trimmed.match(/^[^.!?\n]{1,140}[.!?]?/);
+  return (m ? m[0] : trimmed.slice(0, 140)).trim();
+}
+
+const GENERIC_OPENERS = /^(hi|hello|hey+|hola|yo|sup|greetings|good\s+(morning|afternoon|evening|day))\b/i;
+
+function normalize(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function similarity(a: string, b: string): number {
+  const A = new Set(normalize(a).split(" ").filter((w) => w.length > 3));
+  const B = new Set(normalize(b).split(" ").filter((w) => w.length > 3));
+  if (!A.size || !B.size) return 0;
+  let inter = 0;
+  for (const w of A) if (B.has(w)) inter++;
+  return inter / Math.min(A.size, B.size);
+}
+
+function violatesOpening(reply: string, priorOpenings: string[]): boolean {
+  const opening = firstSentence(reply);
+  if (!opening) return false;
+  if (GENERIC_OPENERS.test(opening.trim())) return true;
+  return priorOpenings.some((p) => similarity(opening, p) >= 0.7);
+}
+
+async function callClaude(apiKey: string, systemPrompt: string, userMessage: string): Promise<string> {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "claude-3-5-haiku-latest",
+      max_tokens: 400,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userMessage }],
+    }),
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    console.warn("[process-seed-replies] claude error", res.status, txt.slice(0, 200));
+    return "";
+  }
+  const j = await res.json();
+  return (j?.content?.[0]?.text ?? "").trim();
+}
