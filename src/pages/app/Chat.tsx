@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { markMatchRead, useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { Card } from "@/components/ui/card";
 import { ProfileDetailSheet } from "@/components/profile/ProfileDetailSheet";
+import { useSpicyTheme } from "@/hooks/useSpicyTheme";
 
 const IMAGE_MSG_PREFIX = "[image]";
 function isImageMessage(content: string) {
@@ -108,6 +109,9 @@ export default function Chat() {
   const otherUserId = matchRow && user
     ? matchRow.user_a === user.id ? matchRow.user_b : matchRow.user_a
     : null;
+
+  // Spicy conversations inherit the luxury crimson + gold theme.
+  useSpicyTheme(!!matchRow?.spicy);
 
   const { data: otherProfile } = useQuery({
     queryKey: ["chat-partner", otherUserId],
