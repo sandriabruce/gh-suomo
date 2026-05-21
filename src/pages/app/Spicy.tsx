@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useEntitlements } from "@/hooks/useEntitlements";
+import { useSpicyTheme } from "@/hooks/useSpicyTheme";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -73,6 +74,9 @@ export default function Spicy() {
   });
 
   const isDiamond = plan === "diamond";
+
+  // Activate the luxury crimson + gold theme any time Spicy Mode is unlocked.
+  useSpicyTheme(isDiamond && ageConfirmed);
 
   const targetGenders = useMemo<string[]>(() => {
     const want = profile?.interested_in;

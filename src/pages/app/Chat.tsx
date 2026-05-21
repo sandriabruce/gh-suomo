@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { markMatchRead, useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { Card } from "@/components/ui/card";
 import { ProfileDetailSheet } from "@/components/profile/ProfileDetailSheet";
+import { useSpicyTheme } from "@/hooks/useSpicyTheme";
 
 const IMAGE_MSG_PREFIX = "[image]";
 function isImageMessage(content: string) {
