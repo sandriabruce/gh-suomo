@@ -67,7 +67,7 @@ export default function Profile() {
         <SafeText as="div" className="heading-gold font-display text-2xl font-bold" fallbackClassName="text-foreground">
           {displayName}
         </SafeText>
-        <div className="mt-2 text-xs uppercase tracking-wider text-ghana-gold">Mode: {profile?.mode === "spark" ? "spicy" : (profile?.mode ?? "romance")}</div>
+        <div className="mt-2 text-xs uppercase tracking-wider text-ghana-gold">Mode: {profile?.mode === "spark" ? "spicy" : "sweet"}</div>
         <div className="mt-1 text-xs uppercase tracking-wider text-ghana-gold">
           Plan: {planLabel}
           {trial.active && (plan === "explorer" || plan === "verified") && (

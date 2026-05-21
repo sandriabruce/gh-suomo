@@ -308,7 +308,7 @@ export default function EditProfile() {
         <div className="grid grid-cols-2 gap-2">
           {(
             [
-              { id: "romance" as const, title: "Romance", desc: "Serious connections.", icon: Heart, ring: "ring-ghana-gold", color: "text-ghana-gold" },
+              { id: "romance" as const, title: "Sweet", desc: "Serious connections.", icon: Heart, ring: "ring-ghana-gold", color: "text-ghana-gold" },
               { id: "spark" as const, title: "Spicy (18+)", desc: "Bolder, flirtier connections.", icon: Flame, ring: "ring-ghana-red", color: "text-ghana-red" },
             ]
           ).map((opt) => (
@@ -584,8 +584,8 @@ export default function EditProfile() {
             </AlertDialogTitle>
             <AlertDialogDescription>
               {pendingMode === "spark"
-                ? "Spicy is an adult (18+) pool with a bolder, flirtier tone. Some Romance prompts and interests will be removed because they aren't allowed here. Full Spicy Mode (with the crimson + gold lounge experience) is reserved for Diamond subscribers."
-                : "You'll move to the Romance pool. Spicy-only prompts and interests will be removed."}
+                ? "Spicy is an adult (18+) pool with a bolder, flirtier tone. Some Sweet prompts and interests will be removed because they aren't allowed here. Full Spicy Mode (with the crimson + gold lounge experience) is reserved for Diamond subscribers."
+                : "You'll move to the Sweet pool. Spicy-only prompts and interests will be removed."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           {pendingMode && (() => {
@@ -676,5 +676,5 @@ export default function EditProfile() {
 }
 
 function modeLabel(m: AppMode) {
-  return m === "spark" ? "Spicy" : "Romance";
+  return m === "spark" ? "Spicy" : "Sweet";
 }
