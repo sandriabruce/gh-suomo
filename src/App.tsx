@@ -9,6 +9,7 @@ import { AppShell } from "@/components/layout/AppShell";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import { ErrorBoundary } from "@/components/layout/ErrorBoundary";
 import { AdinkraOverlay } from "@/components/brand/AdinkraOverlay";
+import { useSpicyModeBootstrap } from "@/hooks/useSpicyTheme";
 import Landing from "./pages/Landing";
 import AuthPage from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
@@ -46,7 +47,9 @@ const guard = (node: ReactNode, label: string) => (
   <ErrorBoundary compact label={`${label} couldn't load`}>{node}</ErrorBoundary>
 );
 
-const App = () => (
+const App = () => {
+  useSpicyModeBootstrap();
+  return (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
@@ -85,6 +88,7 @@ const App = () => (
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
-);
+  );
+};
 
 export default App;
