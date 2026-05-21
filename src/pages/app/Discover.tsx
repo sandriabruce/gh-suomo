@@ -2,9 +2,9 @@ import { SafetyBanner } from "@/components/safety/SafetyBanner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Heart, MessageCircle, BadgeCheck, ShieldAlert, Flag, Ban } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
@@ -13,6 +13,7 @@ import { useEntitlements } from "@/hooks/useEntitlements";
 import { TrialBadge } from "@/components/plan/TrialBadge";
 import { PlanLockOverlay } from "@/components/plan/PlanLockOverlay";
 import { InstallBanner } from "@/components/pwa/InstallBanner";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -56,6 +57,32 @@ type Candidate = {
   verified: boolean;
 };
 
+const PAGE_SIZE = 20;
+
+function mapRow(row: Record<string, unknown>): Candidate {
+  return {
+    id: row.id as string,
+    first_name: (row.first_name as string | null) ?? null,
+    age: (row.age as number | null) ?? null,
+    location: (row.location as string | null) ?? null,
+    bio: (row.bio as string | null) ?? null,
+    photos: Array.isArray(row.photos) ? (row.photos as string[]) : [],
+    interests: Array.isArray(row.interests) ? (row.interests as string[]) : [],
+    prompts: Array.isArray(row.prompts)
+      ? ((row.prompts as unknown[]).filter(
+          (p): p is { q: string; a: string } =>
+            !!p && typeof p === "object" && "q" in p && "a" in p,
+        ))
+      : [],
+    ethnicity: (row.ethnicity as string | null) ?? null,
+    verified: !!row.verified,
+  };
+}
+
+function cacheKey(genders: string[]) {
+  return `discover-cache:${genders.slice().sort().join(",")}`;
+}
+
 export default function Discover() {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -63,8 +90,6 @@ export default function Discover() {
   const { limits, plan, trial } = useEntitlements();
   const [, setI] = useState(0);
   const [likes, setLikes] = useState(0);
-  const [candidates, setCandidates] = useState<Candidate[]>([]);
-  const [loading, setLoading] = useState(true);
   const [openId, setOpenId] = useState<string | null>(null);
   const [openingChat, setOpeningChat] = useState(false);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
@@ -111,51 +136,78 @@ export default function Discover() {
     return ["Man", "Woman"];
   }, [profile?.interested_in]);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
+  // Read cached first page synchronously so the grid renders instantly
+  // (and works briefly offline) before the network responds.
+  const cached = useMemo<Candidate[] | null>(() => {
+    try {
+      const raw = localStorage.getItem(cacheKey(targetGenders));
+      if (!raw) return null;
+      const parsed = JSON.parse(raw) as Candidate[];
+      return Array.isArray(parsed) ? parsed : null;
+    } catch { return null; }
+  }, [targetGenders]);
+
+  const {
+    data,
+    isLoading,
+    isFetchingNextPage,
+    fetchNextPage,
+    hasNextPage,
+    error: fetchError,
+  } = useInfiniteQuery({
+    queryKey: ["discover-feed", targetGenders],
+    initialPageParam: 0,
+    getNextPageParam: (last: Candidate[], all) =>
+      last.length < PAGE_SIZE ? undefined : all.length,
+    queryFn: async ({ pageParam }) => {
+      const from = (pageParam as number) * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
       const { data, error } = await supabase
         .from("profiles")
         .select("id, first_name, age, location, bio, photos, interests, prompts, ethnicity, verified")
         .eq("is_seed", true)
         .eq("banned", false)
         .in("gender", targetGenders)
-        .limit(100);
-      if (cancelled) return;
-      if (error || !data) {
-        setCandidates([]);
-      } else {
-        const mapped: Candidate[] = data.map((row) => ({
-          id: row.id as string,
-          first_name: row.first_name as string | null,
-          age: row.age as number | null,
-          location: row.location as string | null,
-          bio: row.bio as string | null,
-          photos: Array.isArray(row.photos) ? (row.photos as string[]) : [],
-          interests: Array.isArray(row.interests) ? (row.interests as string[]) : [],
-          prompts: Array.isArray(row.prompts)
-            ? ((row.prompts as unknown[]).filter(
-                (p): p is { q: string; a: string } =>
-                  !!p && typeof p === "object" && "q" in p && "a" in p,
-              ))
-            : [],
-          ethnicity: (row.ethnicity as string | null) ?? null,
-          verified: !!row.verified,
-        }));
-        // Filter out blocked users.
-        const visible = mapped.filter((c) => !blockedIds.has(c.id));
-        // Light shuffle so the deck feels fresh on every visit.
-        for (let j = visible.length - 1; j > 0; j--) {
-          const k = Math.floor(Math.random() * (j + 1));
-          [visible[j], visible[k]] = [visible[k], visible[j]];
-        }
-        setCandidates(visible);
+        .order("id", { ascending: true })
+        .range(from, to);
+      if (error) throw error;
+      const mapped = (data ?? []).map(mapRow);
+      if (pageParam === 0) {
+        try { localStorage.setItem(cacheKey(targetGenders), JSON.stringify(mapped)); } catch { /* ignore */ }
       }
-      setLoading(false);
-    })();
-    return () => { cancelled = true; };
-  }, [targetGenders, blockedIds]);
+      return mapped;
+    },
+    initialData: cached
+      ? { pages: [cached], pageParams: [0] }
+      : undefined,
+  });
+
+  const candidates = useMemo(() => {
+    const all = (data?.pages ?? []).flat();
+    // De-dupe in case pages overlap and drop blocked users.
+    const seen = new Set<string>();
+    return all.filter((c) => {
+      if (blockedIds.has(c.id) || seen.has(c.id)) return false;
+      seen.add(c.id);
+      return true;
+    });
+  }, [data, blockedIds]);
+
+  const loading = isLoading && candidates.length === 0;
+
+  // Infinite-scroll sentinel — fetch the next page when it comes into view.
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || !hasNextPage) return;
+    const io = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting) && !isFetchingNextPage) {
+        fetchNextPage();
+      }
+    }, { rootMargin: "300px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage, candidates.length]);
 
   const openPerson = candidates.find((c) => c.id === openId) ?? null;
 
