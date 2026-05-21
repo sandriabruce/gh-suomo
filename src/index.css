@@ -208,3 +208,172 @@ All colors MUST be HSL.
     filter: drop-shadow(0 2px 1px hsl(22 60% 6% / 0.5));
   }
 }
+
+/* ============================================================
+   SPICY MODE — luxury members-only lounge theme
+   Activated by adding `.spicy-mode` to <html>.
+   Cross-fades over 800ms for a deliberate, cinematic transition.
+   ============================================================ */
+@layer base {
+  html, body {
+    transition:
+      background-color 800ms ease,
+      background 800ms ease,
+      color 800ms ease;
+  }
+
+  html.spicy-mode {
+    --background: 0 100% 6%;             /* near-black crimson */
+    --foreground: 35 50% 90%;            /* warm cream/ivory #F5E6D3 */
+
+    --card: 0 65% 11%;                   /* deep burgundy #2D0A0A */
+    --card-foreground: 35 50% 90%;
+
+    --popover: 0 55% 16%;                /* wine #3D1515 */
+    --popover-foreground: 35 50% 90%;
+
+    --primary: 45 65% 54%;               /* deep gold #C9A84C */
+    --primary-foreground: 0 80% 8%;
+
+    --secondary: 0 55% 16%;
+    --secondary-foreground: 35 50% 90%;
+
+    --muted: 0 50% 13%;
+    --muted-foreground: 35 30% 78%;
+
+    --accent: 51 100% 50%;               /* bright gold #FFD700 */
+    --accent-foreground: 0 80% 8%;
+
+    --border: 45 55% 32%;                /* faint gold edges */
+    --input: 0 50% 16%;
+    --ring: 45 65% 54%;
+
+    --shadow-warm: 0 18px 50px -18px hsl(0 80% 4% / 0.85);
+    --shadow-card: 0 10px 28px -10px hsl(0 80% 3% / 0.75);
+
+    background:
+      radial-gradient(ellipse at top, hsl(0 100% 18% / 0.55) 0%, transparent 60%),
+      linear-gradient(180deg, hsl(0 100% 27%) 0%, hsl(0 100% 10%) 55%, hsl(0 100% 4%) 100%);
+    background-attachment: fixed;
+    color: hsl(35 50% 90%);
+  }
+
+  html.spicy-mode body {
+    background: transparent;
+    color: hsl(35 50% 90%);
+  }
+
+  /* Watermark — embossed gold GH Suɔmɔ across the background */
+  html.spicy-mode body::before {
+    content: "GH SUƆMƆ";
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 0;
+    font-family: var(--font-display, ui-serif, Georgia, "Times New Roman", serif);
+    font-weight: 800;
+    font-size: clamp(4rem, 18vw, 11rem);
+    letter-spacing: 0.08em;
+    color: transparent;
+    background: linear-gradient(180deg,
+      hsl(48 95% 70%) 0%,
+      hsl(45 80% 50%) 45%,
+      hsl(36 70% 30%) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    text-shadow:
+      0 1px 0 hsl(48 95% 80% / 0.35),
+      0 -1px 0 hsl(0 80% 4% / 0.7),
+      0 3px 4px hsl(0 80% 2% / 0.6),
+      0 10px 30px hsl(0 80% 2% / 0.6);
+    opacity: 0.085;
+    filter: drop-shadow(0 4px 2px hsl(0 80% 2% / 0.6));
+    transition: opacity 800ms ease;
+    transform: rotate(-8deg);
+  }
+
+  /* Ensure app content sits above the watermark */
+  html.spicy-mode body > * { position: relative; z-index: 1; }
+}
+
+@layer components {
+  /* Headings shift to an elegant semi-serif inside spicy mode */
+  html.spicy-mode h1,
+  html.spicy-mode h2,
+  html.spicy-mode h3,
+  html.spicy-mode h4,
+  html.spicy-mode h5 {
+    font-family: "Playfair Display", "Cormorant Garamond", ui-serif, Georgia, "Times New Roman", serif;
+    letter-spacing: 0.005em;
+  }
+
+  /* Profile names in gold */
+  html.spicy-mode .name-gold {
+    color: hsl(45 90% 62%) !important;
+    -webkit-text-fill-color: hsl(45 90% 62%) !important;
+    text-shadow:
+      0 1px 0 hsl(48 100% 80% / 0.45),
+      0 2px 6px hsl(0 80% 2% / 0.8);
+  }
+
+  /* Cards & surfaces get a subtle gold border + warm deep shadow */
+  html.spicy-mode [data-slot="card"],
+  html.spicy-mode .card,
+  html.spicy-mode .rounded-2xl.border,
+  html.spicy-mode .rounded-3xl.border {
+    border-color: hsl(45 65% 40% / 0.55) !important;
+    box-shadow:
+      0 0 0 1px hsl(45 80% 55% / 0.15) inset,
+      0 18px 40px -18px hsl(0 100% 2% / 0.9);
+  }
+
+  /* Bottom nav: near-black crimson with gold active indicator */
+  html.spicy-mode nav.fixed {
+    background: linear-gradient(180deg, hsl(0 80% 6% / 0.96), hsl(0 80% 3% / 0.98)) !important;
+    border-top: 1px solid hsl(45 65% 38% / 0.4);
+    backdrop-filter: blur(14px);
+  }
+  html.spicy-mode nav.fixed a {
+    color: hsl(35 25% 70%);
+  }
+  html.spicy-mode nav.fixed a.text-ghana-green,
+  html.spicy-mode nav.fixed a[aria-current="page"] {
+    color: hsl(48 100% 60%);
+    filter: drop-shadow(0 0 6px hsl(48 100% 50% / 0.55));
+  }
+
+  /* Top header darkens too */
+  html.spicy-mode header.sticky {
+    background: linear-gradient(180deg, hsl(0 90% 8% / 0.92), hsl(0 80% 5% / 0.85)) !important;
+    border-bottom-color: hsl(45 65% 38% / 0.35);
+    backdrop-filter: blur(14px);
+  }
+
+  /* Buttons: deep gold fills with dark crimson text */
+  html.spicy-mode .bg-ghana-gold {
+    background: linear-gradient(180deg, hsl(48 95% 60%), hsl(42 80% 42%)) !important;
+    color: hsl(0 80% 8%) !important;
+    box-shadow:
+      inset 0 1px 0 hsl(48 100% 85% / 0.6),
+      0 8px 20px -8px hsl(45 90% 30% / 0.6);
+  }
+  html.spicy-mode .text-ghana-brown {
+    color: hsl(0 80% 8%) !important;
+    text-shadow: none;
+  }
+
+  /* Spicy mode flame icon in the tab glows gold when active */
+  html.spicy-mode nav.fixed a[href$="/spicy"] svg {
+    color: hsl(48 100% 60%);
+    filter: drop-shadow(0 0 10px hsl(45 100% 50% / 0.85));
+    animation: spicy-flame-pulse 2.4s ease-in-out infinite;
+  }
+
+  @keyframes spicy-flame-pulse {
+    0%, 100% { filter: drop-shadow(0 0 6px hsl(45 100% 50% / 0.65)); }
+    50%      { filter: drop-shadow(0 0 14px hsl(48 100% 60% / 0.95)); }
+  }
+}
