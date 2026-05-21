@@ -297,6 +297,14 @@ All colors MUST be HSL.
 
   /* Ensure app content sits above the watermark */
   html.spicy-mode body > * { position: relative; z-index: 1; }
+
+  /* AppShell root uses `bg-gradient-warm` which would paint over the
+     crimson gradient + gold watermark. Make it transparent in spicy mode
+     so the body background shows through (critical on mobile where the
+     shell fills the viewport). */
+  html.spicy-mode .bg-gradient-warm {
+    background: transparent !important;
+  }
 }
 
 @layer components {
