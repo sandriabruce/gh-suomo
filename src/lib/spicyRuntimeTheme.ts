@@ -1,4 +1,5 @@
 export const SPICY_MODE_STORAGE_KEY = "spicy-mode:active:v1";
+export const SPICY_MODE_STORAGE_KEY_CANONICAL = "spicy_mode";
 export const SPICY_MODE_EVENT = "spicy-mode-change";
 export const SPICY_MODE_CSS_ID = "spicy-mode-runtime-theme";
 export const SPICY_MODE_CSS_VERSION = "spicy-crimson-20260521";
@@ -61,7 +62,10 @@ html.spicy-mode [class*="border-border"] {
 
 export function readStoredSpicyMode(): boolean {
   try {
-    return window.localStorage.getItem(SPICY_MODE_STORAGE_KEY) === "1";
+    return (
+      window.localStorage.getItem(SPICY_MODE_STORAGE_KEY_CANONICAL) === "true" ||
+      window.localStorage.getItem(SPICY_MODE_STORAGE_KEY) === "1"
+    );
   } catch {
     return false;
   }
