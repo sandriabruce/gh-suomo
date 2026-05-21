@@ -6,6 +6,7 @@ import { TrialBadge } from "@/components/plan/TrialBadge";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { seedClient } from "@/integrations/supabase/seedClient";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { Logo } from "@/components/brand/Logo";
 import { Compass } from "lucide-react";
@@ -20,7 +21,7 @@ export default function Matches() {
     queryKey: ["matches", user?.id],
     enabled: !!user,
     queryFn: async () => {
-      const { data: rows, error } = await supabase
+      const { data: rows, error } = await seedClient
         .from("matches")
         .select("id, user_a, user_b, status, created_at")
         .or(`user_a.eq.${user!.id},user_b.eq.${user!.id}`)
@@ -28,7 +29,7 @@ export default function Matches() {
       if (error) throw error;
       const others = (rows ?? []).map((r) => (r.user_a === user!.id ? r.user_b : r.user_a));
       if (others.length === 0) return [];
-      const { data: profiles } = await supabase
+      const { data: profiles } = await seedClient
         .from("profiles")
         .select("id, first_name, age, city, country, photos")
         .in("id", others);
