@@ -387,7 +387,7 @@ export default function Chat() {
         spicy_mode: !!matchRow?.spicy,
       };
       // Random "thinking" delay so seed replies feel human, not instant.
-      const delayMs = 5_000 + Math.floor(Math.random() * 10_000); // 5-15s
+      const delayMs = 3_000 + Math.floor(Math.random() * 5_000); // 3-8s
       console.log("[seed-reply] scheduled in", Math.round(delayMs / 1000), "s →", url, payload);
       setSeedTyping(true);
       if (seedReplyTimerRef.current !== null) clearTimeout(seedReplyTimerRef.current);
