@@ -99,7 +99,7 @@ export default function Chat() {
     queryFn: async () => {
       const { data, error } = await seedClient
         .from("matches")
-        .select("id,user_a,user_b,status,spicy")
+        .select("id,user_a,user_b,status")
         .eq("id", matchId!)
         .maybeSingle();
       if (error) throw error;
@@ -112,7 +112,7 @@ export default function Chat() {
     : null;
 
   // Spicy conversations inherit the luxury crimson + gold theme.
-  useSpicyTheme(!!matchRow?.spicy);
+  useSpicyTheme(false);
 
   const { data: otherProfile } = useQuery({
     queryKey: ["chat-partner", otherUserId],
