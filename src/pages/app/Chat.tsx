@@ -585,13 +585,6 @@ export default function Chat() {
   );
 }
 
-async function insertChatMessage(matchId: string, senderId: string, content: string) {
-  const { error } = await supabase
-    .from("messages")
-    .insert({ match_id: matchId, sender_id: senderId, content });
-  return error;
-}
-
 function ChatList() {
   const { user } = useAuth();
   const navigate = useNavigate();
