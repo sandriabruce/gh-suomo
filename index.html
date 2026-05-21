@@ -35,6 +35,35 @@
 </head>
 
   <body>
+    <script>
+      (function () {
+        var key = "spicy-mode:active:v1";
+        try {
+          if (window.localStorage.getItem(key) !== "1") return;
+        } catch (error) {
+          return;
+        }
+
+        var css = "html.spicy-mode,html.spicy-mode body{transition:background 0.8s ease,color 0.8s ease!important}html.spicy-mode{--background:#1A0000!important;--card:#2D0A0A!important;--primary:#C9A84C!important;--foreground:#F5E6D3!important;--border:#8B0000!important}html.spicy-mode body{background:linear-gradient(135deg,#1A0000 0%,#2D0000 100%)!important;min-height:100vh!important;color:#F5E6D3!important}html.spicy-mode #root{min-height:100vh!important;background:transparent!important}html.spicy-mode .bg-background,html.spicy-mode [class*=\"bg-background\"]{background-color:#1A0000!important}html.spicy-mode .bg-card,html.spicy-mode [class*=\"bg-card\"]{background-color:#2D0A0A!important}html.spicy-mode .bg-primary,html.spicy-mode [class*=\"bg-primary\"]{background-color:#C9A84C!important}html.spicy-mode .text-foreground,html.spicy-mode [class*=\"text-foreground\"]{color:#F5E6D3!important}html.spicy-mode .text-primary,html.spicy-mode [class*=\"text-primary\"]{color:#C9A84C!important}html.spicy-mode .border-border,html.spicy-mode [class*=\"border-border\"]{border-color:#8B0000!important}";
+        var style = document.getElementById("spicy-mode-runtime-theme");
+        if (!style) {
+          style = document.createElement("style");
+          style.id = "spicy-mode-runtime-theme";
+          style.setAttribute("data-version", "spicy-crimson-20260521");
+          document.head.appendChild(style);
+        }
+        style.textContent = css;
+
+        document.documentElement.classList.add("spicy-mode");
+        document.documentElement.style.setProperty("--background", "#1A0000");
+        document.documentElement.style.setProperty("--card", "#2D0A0A");
+        document.documentElement.style.setProperty("--primary", "#C9A84C");
+        document.documentElement.style.setProperty("--foreground", "#F5E6D3");
+        document.documentElement.style.setProperty("--border", "#8B0000");
+        document.body.style.background = "linear-gradient(135deg, #1A0000 0%, #2D0000 100%)";
+        document.body.style.minHeight = "100vh";
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx?v=spicy-crimson-20260521"></script>
   </body>
