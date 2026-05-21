@@ -46,6 +46,13 @@ Deno.serve(async (req) => {
       return json({ skipped: true, reason: "receiver is not a seed" }, 200);
     }
 
+    // Fetch the recipient (the human the seed is replying to) so we can tailor a question.
+    const { data: recipient } = await admin
+      .from("profiles")
+      .select("first_name, age, gender, location, city, country, bio")
+      .eq("id", sender_id)
+      .maybeSingle();
+
     // Find the match between these two users
     const { data: match, error: matchErr } = await admin
       .from("matches")
@@ -61,24 +68,30 @@ Deno.serve(async (req) => {
     const location = [seed.city, seed.location, seed.country].filter(Boolean).join(", ") || "Ghana";
     const bio = seed.bio ?? "Looking for a genuine connection.";
 
-    // Randomize tone: vary length and occasionally ask a question back.
-    const wantShort = Math.random() < 0.5;
-    const lengthGuidance = wantShort
-      ? "Keep this reply SHORT: exactly 1 or 2 sentences."
-      : "Keep this reply MEDIUM: 3 to 4 sentences.";
-    const askQuestion = Math.random() < 0.6; // ~60% of replies end with a question
-    const questionGuidance = askQuestion
-      ? "End your reply with one genuine, specific question for them — never a generic 'how are you?'."
-      : "Do not ask a question this time; make it feel like a relaxed statement.";
+    const recipientName = recipient?.first_name ?? "them";
+    const recipientLocation = [recipient?.city, recipient?.location, recipient?.country].filter(Boolean).join(", ");
+    const recipientBio = recipient?.bio?.trim() || "";
+    const recipientFacts = [
+      recipient?.age ? `age ${recipient.age}` : "",
+      recipient?.gender ? `${recipient.gender}` : "",
+      recipientLocation ? `based in ${recipientLocation}` : "",
+      recipientBio ? `bio: "${recipientBio}"` : "",
+    ].filter(Boolean).join("; ") || "no profile details available";
 
-    const systemPrompt = `You are ${name}, a 36+ ${gender} from ${location}, Ghana${age ? `, age ${age}` : ""}. You are culturally grounded, mature, warm, respectful, and faith- and family-aware. Bio: ${bio}. You are chatting on GH SUƆMƆ, a Ghanaian dating app for grown people.
+    const systemPrompt = `You are ${name}, a 36+ ${gender} from ${location}, Ghana${age ? `, age ${age}` : ""}. You are culturally grounded, mature, warm, respectful, and faith- and family-aware. Your bio: ${bio}. You are chatting on GH SUƆMƆ, a Ghanaian dating app for grown people.
 
-Style rules for this reply:
-- ${lengthGuidance}
-- ${questionGuidance}
-- Stay fully in character as ${name}. Be genuine and curious without being desperate.
-- Avoid excessive emojis (at most one, and only if it truly fits).
-- Do not mention being an AI, a model, or a chatbot.`;
+You are replying to ${recipientName} (${recipientFacts}).
+
+Structure your reply in EXACTLY this shape, in 3 to 5 sentences total:
+1. One brief, warm self-introduction in your own voice — a single sentence that says who you are (name, where you're from, and one grounding detail from your bio). Make it feel natural, not like a CV.
+2. One or two short sentences responding to what they just said.
+3. Exactly ONE genuine question for ${recipientName}, tailored to something specific in their profile (their bio, location, age, or work). Never a generic "how are you?" or "what do you do?". Ask only one question — no follow-ups, no double questions.
+
+Hard rules:
+- Stay fully in character as ${name}. Never mention being an AI, model, or chatbot.
+- Do not invent facts about ${recipientName} beyond what's in their profile. If their profile is empty, ask about something they mentioned in their message instead.
+- At most one emoji, only if it truly fits.
+- End with the question — nothing after it.`;
 
     const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
