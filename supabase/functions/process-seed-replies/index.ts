@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
 
   const { data: due, error } = await admin
     .from("seed_reply_queue")
-    .select("*, matches:match_id(spicy)")
+    .select("*")
     .eq("status", "pending")
     .lte("reply_at", new Date().toISOString())
     .limit(20);
@@ -79,9 +79,10 @@ Deno.serve(async (req) => {
       // Find the recipient (the other side of the match) so we can tailor a question to them.
       const { data: matchRow } = await admin
         .from("matches")
-        .select("user_a, user_b")
+        .select("user_a, user_b, spicy")
         .eq("id", item.match_id)
         .maybeSingle();
+      const spicy = !!matchRow?.spicy;
       const recipientId =
         matchRow?.user_a === item.seed_user_id ? matchRow?.user_b :
         matchRow?.user_b === item.seed_user_id ? matchRow?.user_a : null;
@@ -97,7 +98,6 @@ Deno.serve(async (req) => {
       const age = seed?.age ?? "";
       const gender = seed?.gender ?? "person";
       const location = [seed?.city, seed?.location, seed?.country].filter(Boolean).join(", ") || "Ghana";
-      const spicy = !!(item as { matches?: { spicy?: boolean } }).matches?.spicy;
       const baseBio = seed?.bio ?? "Looking for a genuine connection.";
       const bio = spicy && seed?.spicy_bio ? seed.spicy_bio : baseBio;
 
