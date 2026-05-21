@@ -423,6 +423,18 @@ export default function Chat() {
             );
           })
         )}
+        {seedTyping && (
+          <div className="flex items-start">
+            <div
+              className="flex items-center gap-1 rounded-2xl bg-muted px-3 py-2"
+              aria-label={`${partnerName} is typing`}
+            >
+              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-foreground/60 [animation-delay:-0.3s]" />
+              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-foreground/60 [animation-delay:-0.15s]" />
+              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-foreground/60" />
+            </div>
+          </div>
+        )}
       </div>
 
       {overFreeLimit ? (
