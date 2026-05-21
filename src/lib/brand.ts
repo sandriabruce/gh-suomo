@@ -25,7 +25,7 @@ export interface ModeTagged {
 
 /**
  * Interests catalog. `modes` declares which member pools an interest is valid for.
- * Items tagged only with "spark" are blocked in Romance mode and vice versa.
+ * Items tagged only with "spark" (Spicy) are blocked in Romance mode and vice versa.
  */
 export const INTERESTS_CATALOG: ModeTagged[] = [
   { label: "Faith",         modes: ["romance"] },
@@ -46,7 +46,7 @@ export const INTERESTS_CATALOG: ModeTagged[] = [
   { label: "Photography",   modes: ["romance", "spark"] },
   { label: "Fitness",       modes: ["romance", "spark"] },
   { label: "Fashion",       modes: ["romance", "spark"] },
-  // Spark-only
+  // Spicy-only (internal mode key kept as "spark")
   { label: "Nightlife",     modes: ["spark"] },
   { label: "Discretion",    modes: ["spark"] },
   { label: "Weekend escapes", modes: ["spark"] },
@@ -59,7 +59,7 @@ export const PROMPTS_CATALOG: ModeTagged[] = [
   { label: "My family means to me…",                       modes: ["romance"] },
   { label: "Something not many people know about me…",     modes: ["romance", "spark"] },
   { label: "If I could move anywhere in Ghana, I would choose…", modes: ["romance", "spark"] },
-  // Spark-only
+  // Spicy-only (internal mode key kept as "spark")
   { label: "What I want from a casual connection is…",     modes: ["spark"] },
   { label: "My idea of a memorable night out is…",         modes: ["spark"] },
 ];

@@ -17,7 +17,7 @@ import {
 import { imageHasFace, type FaceCheckCode } from "@/features/face/detectFace";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Upload, X, AlertTriangle, Loader2, Heart, Sparkles, Lock } from "lucide-react";
+import { ArrowLeft, Upload, X, AlertTriangle, Loader2, Heart, Flame, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   AlertDialog,
@@ -309,7 +309,7 @@ export default function EditProfile() {
           {(
             [
               { id: "romance" as const, title: "Romance", desc: "Serious connections.", icon: Heart, ring: "ring-ghana-gold", color: "text-ghana-gold" },
-              { id: "spark" as const, title: "Spark (18+)", desc: "Casual adult.", icon: Sparkles, ring: "ring-ghana-red", color: "text-ghana-red" },
+              { id: "spark" as const, title: "Spicy (18+)", desc: "Bolder, flirtier connections.", icon: Flame, ring: "ring-ghana-red", color: "text-ghana-red" },
             ]
           ).map((opt) => (
             <button
@@ -584,8 +584,8 @@ export default function EditProfile() {
             </AlertDialogTitle>
             <AlertDialogDescription>
               {pendingMode === "spark"
-                ? "Spark is an adult (18+) pool focused on casual connections. Some Romance prompts and interests will be removed because they aren't allowed here."
-                : "You'll move to the Romance pool. Spark-only prompts and interests will be removed."}
+                ? "Spicy is an adult (18+) pool with a bolder, flirtier tone. Some Romance prompts and interests will be removed because they aren't allowed here. Full Spicy Mode (with the crimson + gold lounge experience) is reserved for Diamond subscribers."
+                : "You'll move to the Romance pool. Spicy-only prompts and interests will be removed."}
             </AlertDialogDescription>
           </AlertDialogHeader>
           {pendingMode && (() => {
@@ -651,7 +651,7 @@ export default function EditProfile() {
                 checked={sparkConsent}
                 onCheckedChange={(v) => setSparkConsent(v === true)}
               />
-              <span>I confirm I am 18 years or older and consent to seeing adult-oriented content.</span>
+              <span>I confirm I am 18 years or older and consent to seeing adult-oriented (Spicy) content.</span>
             </label>
           )}
           <AlertDialogFooter>
@@ -660,7 +660,7 @@ export default function EditProfile() {
               onClick={(e) => {
                 if (pendingMode === "spark" && !sparkConsent) {
                   e.preventDefault();
-                  toast.error("Please confirm you are 18+ to switch to Spark.");
+                  toast.error("Please confirm you are 18+ to switch to Spicy.");
                   return;
                 }
                 confirmModeChange();
@@ -676,5 +676,5 @@ export default function EditProfile() {
 }
 
 function modeLabel(m: AppMode) {
-  return m === "spark" ? "Spark" : "Romance";
+  return m === "spark" ? "Spicy" : "Romance";
 }
