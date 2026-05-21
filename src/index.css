@@ -305,6 +305,23 @@ All colors MUST be HSL.
   html.spicy-mode .bg-gradient-warm {
     background: transparent !important;
   }
+
+  /* Hard overrides so any Tailwind `bg-background` / `bg-card` utility
+     applied deep in the tree (including AppShell on mobile) flips to
+     the crimson + burgundy palette instantly. */
+  html.spicy-mode .bg-background,
+  html.spicy-mode [class*="bg-background"] {
+    background-color: hsl(0 100% 6%) !important;
+    background-image: none !important;
+  }
+  html.spicy-mode .bg-card,
+  html.spicy-mode [class*="bg-card"] {
+    background-color: hsl(0 65% 11%) !important;
+  }
+  html.spicy-mode .bg-muted,
+  html.spicy-mode [class*="bg-muted"] {
+    background-color: hsl(0 50% 13%) !important;
+  }
 }
 
 @layer components {
