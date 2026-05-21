@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
 
   const { data: due, error } = await admin
     .from("seed_reply_queue")
-    .select("*")
+    .select("*, matches:match_id(spicy)")
     .eq("status", "pending")
     .lte("reply_at", new Date().toISOString())
     .limit(20);
@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
 
       const { data: seed } = await admin
         .from("profiles")
-        .select("first_name, age, gender, location, city, country, bio")
+        .select("first_name, age, gender, location, city, country, bio, spicy_bio")
         .eq("id", item.seed_user_id)
         .maybeSingle();
 
@@ -97,7 +97,9 @@ Deno.serve(async (req) => {
       const age = seed?.age ?? "";
       const gender = seed?.gender ?? "person";
       const location = [seed?.city, seed?.location, seed?.country].filter(Boolean).join(", ") || "Ghana";
-      const bio = seed?.bio ?? "Looking for a genuine connection.";
+      const spicy = !!(item as { matches?: { spicy?: boolean } }).matches?.spicy;
+      const baseBio = seed?.bio ?? "Looking for a genuine connection.";
+      const bio = spicy && seed?.spicy_bio ? seed.spicy_bio : baseBio;
 
       const recipientName = recipient?.first_name ?? "them";
       const recipientLocation = [recipient?.city, recipient?.location, recipient?.country].filter(Boolean).join(", ");
@@ -124,7 +126,10 @@ Deno.serve(async (req) => {
         ? `\n\nPhrases YOU have already used in past chats — do not reuse, paraphrase, or echo their structure:\n${priorOpenings.map((s) => `- "${s}"`).join("\n")}`
         : "";
 
-      const systemPrompt = `You are ${name}, a ${age} year old ${gender} from ${location}. Your bio: ${bio}. You are on a Ghanaian dating app called GH SUƆMƆ, replying to ${recipientName} (${recipientFacts}).
+      const toneBlock = spicy
+        ? `You are chatting inside SPICY MODE — a flirtier, bolder, playful adult-40+ corner of the app. Be confident, warm, sensual, and teasing, but never explicit, crude, or pornographic. Hint, flirt, charm — keep it tasteful and grown.`
+        : `You are warm, mature, respectful, and grounded.`;
+      const systemPrompt = `You are ${name}, a ${age} year old ${gender} from ${location}. ${toneBlock} Your bio: ${bio}. You are on a Ghanaian dating app called GH SUƆMƆ, replying to ${recipientName} (${recipientFacts}).
 
 Structure your reply in EXACTLY this shape, in 3 to 5 sentences total:
 1. One brief, warm self-introduction in your own voice — a single sentence saying who you are (name, where you're from, and one grounding detail from your bio). Natural, not a CV.

@@ -18,7 +18,8 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json().catch(() => ({}));
-    const { sender_id, receiver_id, message_content } = body ?? {};
+    const { sender_id, receiver_id, message_content, spicy_mode } = body ?? {};
+    const spicy = !!spicy_mode;
     if (!sender_id || !receiver_id || !message_content) {
       return json({ error: "sender_id, receiver_id, message_content required" }, 400);
     }
@@ -38,7 +39,7 @@ Deno.serve(async (req) => {
     // Verify receiver is a seed
     const { data: seed, error: seedErr } = await admin
       .from("profiles")
-      .select("id, is_seed, first_name, age, gender, location, city, country, bio")
+      .select("id, is_seed, first_name, age, gender, location, city, country, bio, spicy_bio")
       .eq("id", receiver_id)
       .maybeSingle();
     if (seedErr) return json({ error: seedErr.message }, 500);
@@ -66,7 +67,8 @@ Deno.serve(async (req) => {
     const age = seed.age ?? "";
     const gender = seed.gender ?? "person";
     const location = [seed.city, seed.location, seed.country].filter(Boolean).join(", ") || "Ghana";
-    const bio = seed.bio ?? "Looking for a genuine connection.";
+    const baseBio = seed.bio ?? "Looking for a genuine connection.";
+    const bio = spicy && seed.spicy_bio ? seed.spicy_bio : baseBio;
 
     const recipientName = recipient?.first_name ?? "them";
     const recipientLocation = [recipient?.city, recipient?.location, recipient?.country].filter(Boolean).join(", ");
@@ -93,7 +95,10 @@ Deno.serve(async (req) => {
       ? `\n\nPhrases YOU have already used in past chats — do not reuse, paraphrase, or echo their structure:\n${priorOpenings.map((s) => `- "${s}"`).join("\n")}`
       : "";
 
-    const systemPrompt = `You are ${name}, a 36+ ${gender} from ${location}, Ghana${age ? `, age ${age}` : ""}. You are culturally grounded, mature, warm, respectful, and faith- and family-aware. Your bio: ${bio}. You are chatting on GH SUƆMƆ, a Ghanaian dating app for grown people.
+    const toneBlock = spicy
+      ? `You are chatting inside SPICY MODE — a flirtier, bolder, more playful adult-40+ corner of GH SUƆMƆ. Your tone is confident, warm, sensual, and teasing — but never explicit, crude, or pornographic. Hint, flirt, charm. Keep it tasteful and grown.`
+      : `You are culturally grounded, mature, warm, respectful, and faith- and family-aware.`;
+    const systemPrompt = `You are ${name}, a 35+ ${gender} from ${location}, Ghana${age ? `, age ${age}` : ""}. ${toneBlock} Your bio: ${bio}. You are chatting on GH SUƆMƆ, a Ghanaian dating app for grown people.
 
 You are replying to ${recipientName} (${recipientFacts}).
 
