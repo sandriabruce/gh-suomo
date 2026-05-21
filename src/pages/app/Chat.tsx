@@ -97,7 +97,7 @@ export default function Chat() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("matches")
-        .select("id,user_a,user_b,status")
+        .select("id,user_a,user_b,status,spicy")
         .eq("id", matchId!)
         .maybeSingle();
       if (error) throw error;
@@ -379,6 +379,7 @@ export default function Chat() {
         receiver_id,
         match_id: matchId,
         message_content: content,
+        spicy_mode: !!matchRow?.spicy,
       };
       // Random "thinking" delay so seed replies feel human, not instant.
       const delayMs = 45_000 + Math.floor(Math.random() * 75_000); // 45-120s
