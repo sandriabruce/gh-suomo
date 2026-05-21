@@ -1,24 +1,30 @@
-// Minimal service worker for PWA installability. No caching to avoid stale content.
-// Bump CACHE_VERSION whenever shipped assets need to force-evict on installed PWAs.
-const CACHE_VERSION = "v2-spicy-crimson-20260521";
+const CACHE_NAME = 'ghsuomo-v3';
+const STATIC_ASSETS = [
+  '/',
+  '/index.html',
+  '/manifest.json'
+];
 
-self.addEventListener("install", (e) => self.skipWaiting());
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS))
+  );
+  self.skipWaiting();
+});
 
-self.addEventListener("activate", (e) =>
-  e.waitUntil(
-    (async () => {
-      // Nuke any caches left behind by previous SW versions so the next
-      // navigation pulls a fresh HTML/CSS bundle (fixes stuck brown theme
-      // on installed PWAs that cached the pre-spicy build).
-      const names = await caches.keys();
-      await Promise.all(names.map((n) => caches.delete(n)));
-      await self.clients.claim();
-      const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-      clients.forEach((c) => {
-        try { c.postMessage({ type: "sw-cache-version", version: CACHE_VERSION }); } catch {}
-      });
-    })(),
-  ),
-);
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+    )
+  );
+  self.clients.claim();
+});
 
-self.addEventListener("fetch", () => { /* pass-through */ });
+self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+  if (event.request.url.includes('/rest/v1/') || event.request.url.includes('/functions/v1/')) return;
+  event.respondWith(
+    fetch(event.request).catch(() => caches.match(event.request))
+  );
+});

@@ -81,6 +81,57 @@
       })();
     </script>
     <div id="root"></div>
+    <script>
+      // Register service worker for PWA
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').then(function(reg) {
+            console.log('SW registered');
+          }).catch(function(err) {
+            console.log('SW failed:', err);
+          });
+        });
+      }
+
+      // PWA install prompt
+      var deferredPrompt;
+      var installBanner = null;
+
+      window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        if (!localStorage.getItem('pwa-dismissed')) {
+          showInstallBanner();
+        }
+      });
+
+      function showInstallBanner() {
+        installBanner = document.createElement('div');
+        installBanner.id = 'pwa-banner';
+        installBanner.style.cssText = 'position:fixed;bottom:80px;left:16px;right:16px;background:#1a0a00;border:1px solid #C9A84C;border-radius:12px;padding:16px;z-index:9999;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 20px rgba(0,0,0,0.5);';
+        installBanner.innerHTML = '<div style="color:#F5E6D3;font-size:14px;flex:1;margin-right:12px;"><strong style="color:#C9A84C;">Install GH Suɔmɔ</strong><br>Add to your home screen for the best experience</div><button onclick="installApp()" style="background:#C9A84C;color:#1a0a00;border:none;padding:8px 16px;border-radius:8px;font-weight:700;cursor:pointer;margin-right:8px;">Install</button><button onclick="dismissBanner()" style="background:transparent;color:#F5E6D3;border:none;font-size:20px;cursor:pointer;padding:4px;">×</button>';
+        document.body.appendChild(installBanner);
+      }
+
+      window.installApp = function() {
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then(function(result) {
+            if (result.outcome === 'accepted') {
+              dismissBanner();
+            }
+            deferredPrompt = null;
+          });
+        }
+      };
+
+      window.dismissBanner = function() {
+        if (installBanner) {
+          installBanner.remove();
+          localStorage.setItem('pwa-dismissed', '1');
+        }
+      };
+    </script>
     <script type="module" src="/src/main.tsx?v=spicy-crimson-20260521"></script>
   </body>
 </html>
