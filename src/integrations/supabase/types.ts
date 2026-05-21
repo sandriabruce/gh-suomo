@@ -54,6 +54,7 @@ export type Database = {
           id: string
           manual: boolean
           score: number
+          spicy: boolean
           status: Database["public"]["Enums"]["match_status"]
           user_a: string
           user_b: string
@@ -64,6 +65,7 @@ export type Database = {
           id?: string
           manual?: boolean
           score?: number
+          spicy?: boolean
           status?: Database["public"]["Enums"]["match_status"]
           user_a: string
           user_b: string
@@ -74,6 +76,7 @@ export type Database = {
           id?: string
           manual?: boolean
           score?: number
+          spicy?: boolean
           status?: Database["public"]["Enums"]["match_status"]
           user_a?: string
           user_b?: string
@@ -183,6 +186,9 @@ export type Database = {
           prompts: Json | null
           relationship_type: string | null
           religion: string | null
+          spicy_bio: string | null
+          spicy_photos: Json
+          spicy_prompts: Json
           trial_start: string | null
           updated_at: string
           values_text: string | null
@@ -222,6 +228,9 @@ export type Database = {
           prompts?: Json | null
           relationship_type?: string | null
           religion?: string | null
+          spicy_bio?: string | null
+          spicy_photos?: Json
+          spicy_prompts?: Json
           trial_start?: string | null
           updated_at?: string
           values_text?: string | null
@@ -261,6 +270,9 @@ export type Database = {
           prompts?: Json | null
           relationship_type?: string | null
           religion?: string | null
+          spicy_bio?: string | null
+          spicy_photos?: Json
+          spicy_prompts?: Json
           trial_start?: string | null
           updated_at?: string
           values_text?: string | null
