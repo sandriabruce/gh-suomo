@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.paystack-reconcile]
 verify_jwt = false
+
+[functions.send-auth-email]
+verify_jwt = false
+
+[functions.send-renewal-reminders]
+verify_jwt = false
