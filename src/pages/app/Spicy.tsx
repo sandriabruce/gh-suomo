@@ -75,8 +75,10 @@ export default function Spicy() {
 
   const isDiamond = plan === "diamond";
 
-  // Activate the luxury crimson + gold theme any time Spicy Mode is unlocked.
-  useSpicyTheme(isDiamond && ageConfirmed);
+  // Activate the luxury crimson + gold theme on the Spicy page itself —
+  // even for non-Diamond visitors viewing the upsell — so the entire
+  // surrounding chrome (header, nav, body bg) flips to the lounge palette.
+  useSpicyTheme(true);
 
   const targetGenders = useMemo<string[]>(() => {
     const want = profile?.interested_in;
