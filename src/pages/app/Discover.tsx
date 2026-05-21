@@ -332,14 +332,17 @@ export default function Discover() {
       {loading ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {Array.from({ length: 9 }).map((_, idx) => (
-            <div key={idx} className="aspect-[3/4] animate-pulse rounded-2xl bg-muted" />
+            <Skeleton key={idx} className="aspect-[3/4] rounded-2xl" />
           ))}
         </div>
       ) : candidates.length === 0 ? (
         <Card className="rounded-2xl p-6 text-center text-sm text-muted-foreground">
-          No profiles to show yet. Check back soon.
+          {fetchError
+            ? "We couldn't load profiles. Check your connection and try again."
+            : "No profiles to show yet. Check back soon."}
         </Card>
       ) : (
+        <>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           {candidates.map((c) => {
             const photo = c.photos?.[0];
@@ -378,7 +381,15 @@ export default function Discover() {
               </button>
             );
           })}
+          {isFetchingNextPage &&
+            Array.from({ length: 3 }).map((_, idx) => (
+              <Skeleton key={`s-${idx}`} className="aspect-[3/4] rounded-2xl" />
+            ))}
         </div>
+        {hasNextPage && (
+          <div ref={sentinelRef} className="h-10 w-full" aria-hidden />
+        )}
+        </>
       )}
       </>
       )}
