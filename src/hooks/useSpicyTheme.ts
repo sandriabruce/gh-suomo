@@ -1,32 +1,30 @@
 import { useEffect, useSyncExternalStore } from "react";
-
-const STORAGE_KEY = "spicy-mode:active:v1";
-const EVENT = "spicy-mode-change";
-
-function applyClass(active: boolean) {
-  if (typeof document === "undefined") return;
-  document.documentElement.classList.toggle("spicy-mode", active);
-}
+import {
+  SPICY_MODE_EVENT,
+  SPICY_MODE_STORAGE_KEY,
+  applySpicyRuntimeTheme,
+  readStoredSpicyMode,
+} from "@/lib/spicyRuntimeTheme";
 
 function readActive(): boolean {
-  try { return localStorage.getItem(STORAGE_KEY) === "1"; } catch { return false; }
+  return readStoredSpicyMode();
 }
 
 /** Set Spicy Mode globally; persists across navigation + reloads. */
 export function setSpicyModeActive(active: boolean) {
   try {
-    if (active) localStorage.setItem(STORAGE_KEY, "1");
-    else localStorage.removeItem(STORAGE_KEY);
+    if (active) localStorage.setItem(SPICY_MODE_STORAGE_KEY, "1");
+    else localStorage.removeItem(SPICY_MODE_STORAGE_KEY);
   } catch { /* ignore */ }
-  applyClass(active);
-  window.dispatchEvent(new Event(EVENT));
+  applySpicyRuntimeTheme(active);
+  window.dispatchEvent(new Event(SPICY_MODE_EVENT));
 }
 
 function subscribe(cb: () => void) {
-  window.addEventListener(EVENT, cb);
+  window.addEventListener(SPICY_MODE_EVENT, cb);
   window.addEventListener("storage", cb);
   return () => {
-    window.removeEventListener(EVENT, cb);
+    window.removeEventListener(SPICY_MODE_EVENT, cb);
     window.removeEventListener("storage", cb);
   };
 }
@@ -50,5 +48,5 @@ export function useSpicyTheme(active: boolean) {
 
 /** Mount once at the app root to re-apply the persisted class on every load. */
 export function useSpicyModeBootstrap() {
-  useEffect(() => { applyClass(readActive()); }, []);
+  useEffect(() => { applySpicyRuntimeTheme(readActive()); }, []);
 }
