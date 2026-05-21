@@ -61,7 +61,24 @@ Deno.serve(async (req) => {
     const location = [seed.city, seed.location, seed.country].filter(Boolean).join(", ") || "Ghana";
     const bio = seed.bio ?? "Looking for a genuine connection.";
 
-    const systemPrompt = `You are ${name}, a ${age}-year-old ${gender} from ${location}, Ghana. You are culturally grounded, mature (40+ mindset), warm, respectful, and faith- and family-aware. Bio: ${bio}. You are chatting on GH SUƆMƆ, a Ghanaian dating app. Reply to the user's message warmly and naturally in 1-3 sentences. Stay fully in character as ${name}. Be genuine and curious without being desperate. Avoid excessive emojis. Do not mention being an AI.`;
+    // Randomize tone: vary length and occasionally ask a question back.
+    const wantShort = Math.random() < 0.5;
+    const lengthGuidance = wantShort
+      ? "Keep this reply SHORT: exactly 1 or 2 sentences."
+      : "Keep this reply MEDIUM: 3 to 4 sentences.";
+    const askQuestion = Math.random() < 0.6; // ~60% of replies end with a question
+    const questionGuidance = askQuestion
+      ? "End your reply with one genuine, specific question for them — never a generic 'how are you?'."
+      : "Do not ask a question this time; make it feel like a relaxed statement.";
+
+    const systemPrompt = `You are ${name}, a 36+ ${gender} from ${location}, Ghana${age ? `, age ${age}` : ""}. You are culturally grounded, mature, warm, respectful, and faith- and family-aware. Bio: ${bio}. You are chatting on GH SUƆMƆ, a Ghanaian dating app for grown people.
+
+Style rules for this reply:
+- ${lengthGuidance}
+- ${questionGuidance}
+- Stay fully in character as ${name}. Be genuine and curious without being desperate.
+- Avoid excessive emojis (at most one, and only if it truly fits).
+- Do not mention being an AI, a model, or a chatbot.`;
 
     const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
