@@ -31,6 +31,8 @@ export default function Chat() {
   const navigate = useNavigate();
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [seedTyping, setSeedTyping] = useState(false);
+  const seedReplyTimerRef = useRef<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const draftKey = matchId && user ? `chat-draft:${user.id}:${matchId}` : null;
@@ -113,7 +115,24 @@ export default function Chat() {
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
-  }, [messages]);
+  }, [messages, seedTyping]);
+
+  // Clear typing indicator as soon as a new message from the partner lands.
+  useEffect(() => {
+    if (!user || !seedTyping || messages.length === 0) return;
+    const last = messages[messages.length - 1];
+    if (last.sender_id !== user.id) setSeedTyping(false);
+  }, [messages, user, seedTyping]);
+
+  // Cancel any scheduled seed reply when the user leaves this chat.
+  useEffect(() => {
+    return () => {
+      if (seedReplyTimerRef.current !== null) {
+        clearTimeout(seedReplyTimerRef.current);
+        seedReplyTimerRef.current = null;
+      }
+    };
+  }, [matchId]);
 
   // Mark this match as read whenever messages load/update while viewing it.
   useEffect(() => {
