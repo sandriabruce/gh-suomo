@@ -240,6 +240,86 @@ export default function Chat() {
   }
 
   async function send() {
+    await sendContent(draft.trim());
+  }
+
+  async function sendContent(content: string) {
+    if (!content || !user || !matchId) return;
+    if (content === draft.trim()) setSending(true);
+    const isImage = isImageMessage(content);
+    let { data: inserted, error } = await supabase
+      .from("messages")
+      .insert({ match_id: matchId, sender_id: user.id, content })
+      .select("id,sender_id,content,created_at,read_at")
+      .single();
+    if (error) {
+      const missingReadAt =
+        /read_at/i.test(error.message ?? "") ||
+        error.code === "PGRST204" ||
+        error.code === "42703";
+      if (missingReadAt) {
+        const retry = await supabase
+          .from("messages")
+          .insert({ match_id: matchId, sender_id: user.id, content })
+          .select("id,sender_id,content,created_at")
+          .single();
+        if (!retry.error && retry.data) {
+          inserted = { ...retry.data, read_at: null } as ChatMessage;
+          error = null;
+        } else if (retry.error) {
+          error = retry.error;
+        }
+      }
+    }
+    setSending(false);
+    if (error) {
+      console.error("send message failed", error);
+      toast.error(`Message not sent: ${error.message}`);
+      return;
+    }
+    if (!isImage) {
+      setDraft("");
+      if (draftKey) { try { localStorage.removeItem(draftKey); } catch { /* ignore */ } }
+    }
+    if (inserted) {
+      qc.setQueryData<ChatMessage[]>(["messages", matchId], (current = []) => (
+        current.some((m) => m.id === inserted!.id) ? current : [...current, inserted!]
+      ));
+    }
+    qc.invalidateQueries({ queryKey: ["messages", matchId] });
+  }
+
+  async function uploadImage(file: File) {
+    if (!user || !matchId) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please choose an image file.");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("Image is too large (max 8MB).");
+      return;
+    }
+    setUploading(true);
+    try {
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+      const path = `${user.id}/chat-images/${matchId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("profile-photos")
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("profile-photos").getPublicUrl(path);
+      const url = pub.publicUrl;
+      await sendContent(`${IMAGE_MSG_PREFIX}${url}`);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error("upload image failed", e);
+      toast.error(`Photo not sent: ${msg}`);
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function _legacySend_unused() {
     if (!draft.trim() || !user || !matchId) return;
     setSending(true);
     const content = draft.trim();
