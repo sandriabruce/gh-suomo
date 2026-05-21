@@ -31,6 +31,8 @@ export default function Chat() {
   const navigate = useNavigate();
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [seedTyping, setSeedTyping] = useState(false);
+  const seedReplyTimerRef = useRef<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const draftKey = matchId && user ? `chat-draft:${user.id}:${matchId}` : null;
@@ -113,7 +115,24 @@ export default function Chat() {
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
-  }, [messages]);
+  }, [messages, seedTyping]);
+
+  // Clear typing indicator as soon as a new message from the partner lands.
+  useEffect(() => {
+    if (!user || !seedTyping || messages.length === 0) return;
+    const last = messages[messages.length - 1];
+    if (last.sender_id !== user.id) setSeedTyping(false);
+  }, [messages, user, seedTyping]);
+
+  // Cancel any scheduled seed reply when the user leaves this chat.
+  useEffect(() => {
+    return () => {
+      if (seedReplyTimerRef.current !== null) {
+        clearTimeout(seedReplyTimerRef.current);
+        seedReplyTimerRef.current = null;
+      }
+    };
+  }, [matchId]);
 
   // Mark this match as read whenever messages load/update while viewing it.
   useEffect(() => {
@@ -316,32 +335,35 @@ export default function Chat() {
         match_id: matchId,
         message_content: content,
       };
-      console.log("[seed-reply] POST →", url, payload);
-      // Fire-and-forget: do NOT await and do NOT attach an AbortController/signal.
-      // Awaiting here ties the request to the component lifecycle; if the user
-      // navigates away the in-flight promise can be cancelled with
-      // "AbortError: signal is aborted without reason".
-      fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session?.access_token ?? anonKey}`,
-        },
-        body: JSON.stringify(payload),
-      })
-        .then(async (res) => {
-          const text = await res.text().catch(() => "");
-          console.log("[seed-reply] response", res.status, text);
-          if (res.ok) {
-            setTimeout(
-              () => qc.invalidateQueries({ queryKey: ["messages", matchId] }),
-              2000,
-            );
-          }
+      // Random "thinking" delay so seed replies feel human, not instant.
+      const delayMs = 45_000 + Math.floor(Math.random() * 75_000); // 45-120s
+      console.log("[seed-reply] scheduled in", Math.round(delayMs / 1000), "s →", url, payload);
+      setSeedTyping(true);
+      if (seedReplyTimerRef.current !== null) clearTimeout(seedReplyTimerRef.current);
+      seedReplyTimerRef.current = window.setTimeout(() => {
+        seedReplyTimerRef.current = null;
+        fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.access_token ?? anonKey}`,
+          },
+          body: JSON.stringify(payload),
         })
-        .catch((fetchErr) => {
-          console.error("[seed-reply] fetch threw", fetchErr);
-        });
+          .then(async (res) => {
+            const text = await res.text().catch(() => "");
+            console.log("[seed-reply] response", res.status, text);
+            if (res.ok) {
+              qc.invalidateQueries({ queryKey: ["messages", matchId] });
+            } else {
+              setSeedTyping(false);
+            }
+          })
+          .catch((fetchErr) => {
+            console.error("[seed-reply] fetch threw", fetchErr);
+            setSeedTyping(false);
+          });
+      }, delayMs);
     } catch (outerErr) {
       console.error("[seed-reply] outer error", outerErr);
     }
@@ -400,6 +422,18 @@ export default function Chat() {
               </div>
             );
           })
+        )}
+        {seedTyping && (
+          <div className="flex items-start">
+            <div
+              className="flex items-center gap-1 rounded-2xl bg-muted px-3 py-2"
+              aria-label={`${partnerName} is typing`}
+            >
+              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-foreground/60 [animation-delay:-0.3s]" />
+              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-foreground/60 [animation-delay:-0.15s]" />
+              <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-foreground/60" />
+            </div>
+          </div>
         )}
       </div>
 
