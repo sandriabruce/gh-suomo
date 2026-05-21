@@ -115,7 +115,7 @@ export function AppShell() {
             >
               <span className="relative">
                 <Icon className="h-5 w-5" />
-                {to === "/app/matches" && unread && unread.total > 0 && (
+                {(to === "/app/matches" || to === "/app/chat") && unread && unread.total > 0 && (
                   <span className="absolute -right-2 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-ghana-red px-1 text-[9px] font-bold text-white">
                     {unread.total > 9 ? "9+" : unread.total}
                   </span>
