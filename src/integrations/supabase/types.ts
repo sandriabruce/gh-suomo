@@ -458,6 +458,7 @@ export type Database = {
       }
     }
     Functions: {
+      current_user_email_confirmed: { Args: never; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
