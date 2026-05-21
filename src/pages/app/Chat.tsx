@@ -240,11 +240,14 @@ export default function Chat() {
   }
 
   async function send() {
-    await sendContent(draft.trim());
+    const content = draft.trim();
+    if (!content) return;
+    const ok = await sendContent(content);
+    if (ok) triggerSeedReply(content);
   }
 
-  async function sendContent(content: string) {
-    if (!content || !user || !matchId) return;
+  async function sendContent(content: string): Promise<boolean> {
+    if (!content || !user || !matchId) return false;
     if (content === draft.trim()) setSending(true);
     const isImage = isImageMessage(content);
     let { data: inserted, error } = await supabase
@@ -275,7 +278,7 @@ export default function Chat() {
     if (error) {
       console.error("send message failed", error);
       toast.error(`Message not sent: ${error.message}`);
-      return;
+      return false;
     }
     if (!isImage) {
       setDraft("");
@@ -287,6 +290,7 @@ export default function Chat() {
       ));
     }
     qc.invalidateQueries({ queryKey: ["messages", matchId] });
+    return true;
   }
 
   async function uploadImage(file: File) {
@@ -319,53 +323,8 @@ export default function Chat() {
     }
   }
 
-  async function _legacySend_unused() {
-    if (!draft.trim() || !user || !matchId) return;
-    setSending(true);
-    const content = draft.trim();
-    let { data: inserted, error } = await supabase
-      .from("messages")
-      .insert({
-        match_id: matchId,
-        sender_id: user.id,
-        content,
-      })
-      .select("id,sender_id,content,created_at,read_at")
-      .single();
-    if (error) {
-      const missingReadAt =
-        /read_at/i.test(error.message ?? "") ||
-        error.code === "PGRST204" ||
-        error.code === "42703";
-      if (missingReadAt) {
-        const retry = await supabase
-          .from("messages")
-          .insert({ match_id: matchId, sender_id: user.id, content })
-          .select("id,sender_id,content,created_at")
-          .single();
-        if (!retry.error && retry.data) {
-          inserted = { ...retry.data, read_at: null } as ChatMessage;
-          error = null;
-        } else if (retry.error) {
-          error = retry.error;
-        }
-      }
-    }
-    setSending(false);
-    if (error) {
-      console.error("send message failed", error);
-      toast.error(`Message not sent: ${error.message}`);
-      return;
-    }
-    setDraft("");
-    if (draftKey) { try { localStorage.removeItem(draftKey); } catch { /* ignore */ } }
-    if (inserted) {
-      qc.setQueryData<ChatMessage[]>(["messages", matchId], (current = []) => (
-        current.some((m) => m.id === inserted.id) ? current : [...current, inserted]
-      ));
-    }
-    qc.invalidateQueries({ queryKey: ["messages", matchId] });
-
+  async function triggerSeedReply(content: string) {
+    if (!user || !matchId) return;
     // If the other party in this match is a seed profile, trigger an AI reply.
     try {
       console.log("[seed-reply] start: looking up match", matchId);
