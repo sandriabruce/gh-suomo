@@ -109,6 +109,21 @@ Deno.serve(async (req) => {
         recipientBio ? `bio: "${recipientBio}"` : "",
       ].filter(Boolean).join("; ") || "no profile details available";
 
+      // Pull this seed's recent openings across all chats to prevent repetition.
+      const { data: priorMsgs } = await admin
+        .from("messages")
+        .select("content")
+        .eq("sender_id", item.seed_user_id)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      const priorOpenings = (priorMsgs ?? [])
+        .map((m: { content: string }) => firstSentence(m.content))
+        .filter(Boolean)
+        .slice(0, 15);
+      const avoidBlock = priorOpenings.length
+        ? `\n\nPhrases YOU have already used in past chats — do not reuse, paraphrase, or echo their structure:\n${priorOpenings.map((s) => `- "${s}"`).join("\n")}`
+        : "";
+
       const systemPrompt = `You are ${name}, a ${age} year old ${gender} from ${location}. Your bio: ${bio}. You are on a Ghanaian dating app called GH SUƆMƆ, replying to ${recipientName} (${recipientFacts}).
 
 Structure your reply in EXACTLY this shape, in 3 to 5 sentences total:
@@ -120,34 +135,17 @@ Hard rules:
 - Stay fully in character as ${name}. Never mention being an AI, model, or chatbot.
 - Do not invent facts about ${recipientName} beyond their profile. If their profile is empty, ask about something they mentioned in their message instead.
 - At most one emoji, only if it truly fits.
-- End with the question — nothing after it.`;
+- End with the question — nothing after it.
+- Never start with a generic greeting like "hi", "hello", "hey", "hola", "yo", "sup", "greetings", or "good morning/afternoon/evening". Open with a specific reaction, observation, or your name instead.${avoidBlock}`;
 
-      const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "x-api-key": ANTHROPIC_API_KEY,
-          "anthropic-version": "2023-06-01",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "claude-3-5-haiku-latest",
-          max_tokens: 300,
-          system: systemPrompt,
-          messages: [{ role: "user", content: item.trigger_message_content }],
-        }),
-      });
+      let reply = await callClaude(ANTHROPIC_API_KEY, systemPrompt, item.trigger_message_content);
 
-      if (!claudeRes.ok) {
-        const txt = await claudeRes.text();
-        await admin.from("seed_reply_queue")
-          .update({ status: "failed", processed_at: new Date().toISOString() })
-          .eq("id", item.id);
-        results.push({ id: item.id, ok: false, error: `claude ${claudeRes.status}: ${txt.slice(0, 200)}` });
-        continue;
+      if (reply && violatesOpening(reply, priorOpenings)) {
+        const retryPrompt = `${systemPrompt}\n\nYour previous draft started with a forbidden greeting or reused phrasing you have already used. Rewrite it: do NOT start with hi/hello/hey/etc., and make the opening sentence visibly different from your past openings.`;
+        const retry = await callClaude(ANTHROPIC_API_KEY, retryPrompt, item.trigger_message_content);
+        if (retry) reply = retry;
       }
 
-      const claudeJson = await claudeRes.json();
-      const reply: string = claudeJson?.content?.[0]?.text?.trim() || "";
       if (!reply) {
         await admin.from("seed_reply_queue")
           .update({ status: "failed", processed_at: new Date().toISOString() })
