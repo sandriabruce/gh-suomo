@@ -63,8 +63,10 @@ export function AdinkraOverlay() {
         {spots.map((s, idx) => {
           const sym = symbols[s.i % symbols.length];
           return (
-            <div
+            <img
               key={idx}
+              src={sym.src}
+              alt=""
               style={{
                 position: "absolute",
                 top: s.top,
@@ -72,15 +74,9 @@ export function AdinkraOverlay() {
                 width: sym.size,
                 height: sym.size,
                 transform: `rotate(${s.rot}deg)`,
-                backgroundColor: "hsl(var(--ghana-gold))",
-                WebkitMaskImage: `url(${sym.src})`,
-                maskImage: `url(${sym.src})`,
-                WebkitMaskRepeat: "no-repeat",
-                maskRepeat: "no-repeat",
-                WebkitMaskSize: "contain",
-                maskSize: "contain",
-                WebkitMaskPosition: "center",
-                maskPosition: "center",
+                filter: "invert(1) sepia(1) saturate(2) hue-rotate(5deg) brightness(0.9)",
+                opacity: 1,
+                objectFit: "contain",
               }}
             />
           );
