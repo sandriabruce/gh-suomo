@@ -25,7 +25,7 @@ export interface ModeTagged {
 
 /**
  * Interests catalog. `modes` declares which member pools an interest is valid for.
- * Items tagged only with "spark" are blocked in Romance mode and vice versa.
+ * Items tagged only with "spark" (Spicy) are blocked in Romance mode and vice versa.
  */
 export const INTERESTS_CATALOG: ModeTagged[] = [
   { label: "Faith",         modes: ["romance"] },
@@ -46,7 +46,7 @@ export const INTERESTS_CATALOG: ModeTagged[] = [
   { label: "Photography",   modes: ["romance", "spark"] },
   { label: "Fitness",       modes: ["romance", "spark"] },
   { label: "Fashion",       modes: ["romance", "spark"] },
-  // Spark-only
+  // Spicy-only (internal mode key kept as "spark")
   { label: "Nightlife",     modes: ["spark"] },
   { label: "Discretion",    modes: ["spark"] },
   { label: "Weekend escapes", modes: ["spark"] },
