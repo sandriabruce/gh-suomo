@@ -6,6 +6,7 @@ import { PaystackMomoFlow } from "@/components/paystack/PaystackMomoFlow";
 import { useEntitlements } from "@/hooks/useEntitlements";
 import { TrialBadge } from "@/components/plan/TrialBadge";
 import type { Plan } from "@/features/trial/entitlements";
+import { IdentityVerificationCard } from "@/components/verify/IdentityVerificationCard";
 
 const PLANS: { id: Plan; name: string; price: string; note: string; payable: boolean }[] = [
   { id: "explorer", name: "Explorer", price: "Free", note: "Browse only · 2 matches/week", payable: false },
@@ -27,6 +28,7 @@ export default function Verify() {
       />
       <h1 className="heading-gold font-display text-2xl font-bold">Plans & verification</h1>
       <TrialBadge />
+      <IdentityVerificationCard />
       <div className="grid gap-3">
         {PLANS.map((p) => {
           const isCurrent = p.id === currentPlan;

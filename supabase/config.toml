@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.send-renewal-reminders]
 verify_jwt = false
+
+[functions.verify-identity]
+verify_jwt = false
