@@ -110,6 +110,9 @@ export default function Chat() {
     ? matchRow.user_a === user.id ? matchRow.user_b : matchRow.user_a
     : null;
 
+  // Spicy conversations inherit the luxury crimson + gold theme.
+  useSpicyTheme(!!matchRow?.spicy);
+
   const { data: otherProfile } = useQuery({
     queryKey: ["chat-partner", otherUserId],
     enabled: !!otherUserId,
