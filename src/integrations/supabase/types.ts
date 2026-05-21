@@ -151,6 +151,9 @@ export type Database = {
       profiles: {
         Row: {
           age: number | null
+          age_verification_notes: string | null
+          age_verification_status: Database["public"]["Enums"]["verification_status"]
+          age_verified: boolean
           banned: boolean
           bio: string | null
           city: string | null
@@ -171,6 +174,9 @@ export type Database = {
           mode: Database["public"]["Enums"]["app_mode"]
           notifications_enabled: boolean | null
           onboarded: boolean
+          photo_verification_notes: string | null
+          photo_verification_status: Database["public"]["Enums"]["verification_status"]
+          photo_verified: boolean
           photos: Json | null
           plan: Database["public"]["Enums"]["plan_tier"]
           privacy_strict: boolean | null
@@ -184,6 +190,9 @@ export type Database = {
         }
         Insert: {
           age?: number | null
+          age_verification_notes?: string | null
+          age_verification_status?: Database["public"]["Enums"]["verification_status"]
+          age_verified?: boolean
           banned?: boolean
           bio?: string | null
           city?: string | null
@@ -204,6 +213,9 @@ export type Database = {
           mode?: Database["public"]["Enums"]["app_mode"]
           notifications_enabled?: boolean | null
           onboarded?: boolean
+          photo_verification_notes?: string | null
+          photo_verification_status?: Database["public"]["Enums"]["verification_status"]
+          photo_verified?: boolean
           photos?: Json | null
           plan?: Database["public"]["Enums"]["plan_tier"]
           privacy_strict?: boolean | null
@@ -217,6 +229,9 @@ export type Database = {
         }
         Update: {
           age?: number | null
+          age_verification_notes?: string | null
+          age_verification_status?: Database["public"]["Enums"]["verification_status"]
+          age_verified?: boolean
           banned?: boolean
           bio?: string | null
           city?: string | null
@@ -237,6 +252,9 @@ export type Database = {
           mode?: Database["public"]["Enums"]["app_mode"]
           notifications_enabled?: boolean | null
           onboarded?: boolean
+          photo_verification_notes?: string | null
+          photo_verification_status?: Database["public"]["Enums"]["verification_status"]
+          photo_verified?: boolean
           photos?: Json | null
           plan?: Database["public"]["Enums"]["plan_tier"]
           privacy_strict?: boolean | null
@@ -414,6 +432,54 @@ export type Database = {
         }
         Relationships: []
       }
+      verification_requests: {
+        Row: {
+          ai_extracted_dob: string | null
+          ai_extracted_name: string | null
+          ai_face_match_score: number | null
+          ai_notes: string | null
+          created_at: string
+          id: string
+          id_document_path: string | null
+          id_type: string | null
+          kind: string
+          processed_at: string | null
+          selfie_path: string | null
+          status: Database["public"]["Enums"]["verification_status"]
+          user_id: string
+        }
+        Insert: {
+          ai_extracted_dob?: string | null
+          ai_extracted_name?: string | null
+          ai_face_match_score?: number | null
+          ai_notes?: string | null
+          created_at?: string
+          id?: string
+          id_document_path?: string | null
+          id_type?: string | null
+          kind: string
+          processed_at?: string | null
+          selfie_path?: string | null
+          status?: Database["public"]["Enums"]["verification_status"]
+          user_id: string
+        }
+        Update: {
+          ai_extracted_dob?: string | null
+          ai_extracted_name?: string | null
+          ai_face_match_score?: number | null
+          ai_notes?: string | null
+          created_at?: string
+          id?: string
+          id_document_path?: string | null
+          id_type?: string | null
+          kind?: string
+          processed_at?: string | null
+          selfie_path?: string | null
+          status?: Database["public"]["Enums"]["verification_status"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       profiles_public: {
@@ -513,6 +579,7 @@ export type Database = {
       plan_tier: "explorer" | "verified" | "premium" | "diamond"
       report_status: "open" | "reviewed" | "dismissed"
       subscription_status: "trial" | "active" | "expired" | "cancelled"
+      verification_status: "unverified" | "pending" | "approved" | "rejected"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -646,6 +713,7 @@ export const Constants = {
       plan_tier: ["explorer", "verified", "premium", "diamond"],
       report_status: ["open", "reviewed", "dismissed"],
       subscription_status: ["trial", "active", "expired", "cancelled"],
+      verification_status: ["unverified", "pending", "approved", "rejected"],
     },
   },
 } as const
