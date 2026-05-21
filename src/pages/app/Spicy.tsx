@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Flame, Crown, Flag, ShieldAlert, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { seedClient } from "@/integrations/supabase/seedClient";
 import { useAuth } from "@/hooks/useAuth";
 import { useProfile } from "@/hooks/useProfile";
 import { useEntitlements } from "@/hooks/useEntitlements";
@@ -91,11 +92,10 @@ export default function Spicy() {
     queryKey: ["spicy-feed", targetGenders],
     enabled: !!user && isDiamond && ageConfirmed,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await seedClient
         .from("profiles")
-        .select("id, first_name, age, location, spicy_bio, spicy_photos, spicy_prompts, gender, is_seed, banned")
+        .select("id, first_name, age, location, spicy_bio, spicy_photos, spicy_prompts, gender, is_seed")
         .eq("is_seed", true)
-        .eq("banned", false)
         .in("gender", targetGenders)
         .limit(60);
       if (error) throw error;
@@ -166,20 +166,16 @@ export default function Spicy() {
     if (!user) return;
     setOpening(true);
     try {
-      const { data: existing } = await supabase
+      const { data: existing } = await seedClient
         .from("matches")
-        .select("id,spicy")
+        .select("id")
         .or(`and(user_a.eq.${user.id},user_b.eq.${otherId}),and(user_a.eq.${otherId},user_b.eq.${user.id})`)
         .limit(1);
       let matchId = existing?.[0]?.id;
-      if (matchId) {
-        if (!existing?.[0]?.spicy) {
-          await supabase.from("matches").update({ spicy: true }).eq("id", matchId);
-        }
-      } else {
-        const { data: created, error } = await supabase
+      if (!matchId) {
+        const { data: created, error } = await seedClient
           .from("matches")
-          .insert({ user_a: user.id, user_b: otherId, status: "active", score: 80, spicy: true })
+          .insert({ user_a: user.id, user_b: otherId, status: "active", score: 80 })
           .select("id")
           .single();
         if (error) { toast.error(error.message); return; }
