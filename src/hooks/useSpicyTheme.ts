@@ -2,6 +2,7 @@ import { useEffect, useSyncExternalStore } from "react";
 import {
   SPICY_MODE_EVENT,
   SPICY_MODE_STORAGE_KEY,
+  SPICY_MODE_STORAGE_KEY_CANONICAL,
   applySpicyRuntimeTheme,
   readStoredSpicyMode,
 } from "@/lib/spicyRuntimeTheme";
@@ -13,8 +14,13 @@ function readActive(): boolean {
 /** Set Spicy Mode globally; persists across navigation + reloads. */
 export function setSpicyModeActive(active: boolean) {
   try {
-    if (active) localStorage.setItem(SPICY_MODE_STORAGE_KEY, "1");
-    else localStorage.removeItem(SPICY_MODE_STORAGE_KEY);
+    if (active) {
+      localStorage.setItem(SPICY_MODE_STORAGE_KEY, "1");
+      localStorage.setItem(SPICY_MODE_STORAGE_KEY_CANONICAL, "true");
+    } else {
+      localStorage.removeItem(SPICY_MODE_STORAGE_KEY);
+      localStorage.setItem(SPICY_MODE_STORAGE_KEY_CANONICAL, "false");
+    }
   } catch { /* ignore */ }
   applySpicyRuntimeTheme(active);
   window.dispatchEvent(new Event(SPICY_MODE_EVENT));
