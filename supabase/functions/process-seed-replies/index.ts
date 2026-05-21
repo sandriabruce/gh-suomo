@@ -109,6 +109,21 @@ Deno.serve(async (req) => {
         recipientBio ? `bio: "${recipientBio}"` : "",
       ].filter(Boolean).join("; ") || "no profile details available";
 
+      // Pull this seed's recent openings across all chats to prevent repetition.
+      const { data: priorMsgs } = await admin
+        .from("messages")
+        .select("content")
+        .eq("sender_id", item.seed_user_id)
+        .order("created_at", { ascending: false })
+        .limit(20);
+      const priorOpenings = (priorMsgs ?? [])
+        .map((m: { content: string }) => firstSentence(m.content))
+        .filter(Boolean)
+        .slice(0, 15);
+      const avoidBlock = priorOpenings.length
+        ? `\n\nPhrases YOU have already used in past chats — do not reuse, paraphrase, or echo their structure:\n${priorOpenings.map((s) => `- "${s}"`).join("\n")}`
+        : "";
+
       const systemPrompt = `You are ${name}, a ${age} year old ${gender} from ${location}. Your bio: ${bio}. You are on a Ghanaian dating app called GH SUƆMƆ, replying to ${recipientName} (${recipientFacts}).
 
 Structure your reply in EXACTLY this shape, in 3 to 5 sentences total:
@@ -120,34 +135,17 @@ Hard rules:
 - Stay fully in character as ${name}. Never mention being an AI, model, or chatbot.
 - Do not invent facts about ${recipientName} beyond their profile. If their profile is empty, ask about something they mentioned in their message instead.
 - At most one emoji, only if it truly fits.
-- End with the question — nothing after it.`;
+- End with the question — nothing after it.
+- Never start with a generic greeting like "hi", "hello", "hey", "hola", "yo", "sup", "greetings", or "good morning/afternoon/evening". Open with a specific reaction, observation, or your name instead.${avoidBlock}`;
 
-      const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
-        method: "POST",
-        headers: {
-          "x-api-key": ANTHROPIC_API_KEY,
-          "anthropic-version": "2023-06-01",
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "claude-3-5-haiku-latest",
-          max_tokens: 300,
-          system: systemPrompt,
-          messages: [{ role: "user", content: item.trigger_message_content }],
-        }),
-      });
+      let reply = await callClaude(ANTHROPIC_API_KEY, systemPrompt, item.trigger_message_content);
 
-      if (!claudeRes.ok) {
-        const txt = await claudeRes.text();
-        await admin.from("seed_reply_queue")
-          .update({ status: "failed", processed_at: new Date().toISOString() })
-          .eq("id", item.id);
-        results.push({ id: item.id, ok: false, error: `claude ${claudeRes.status}: ${txt.slice(0, 200)}` });
-        continue;
+      if (reply && violatesOpening(reply, priorOpenings)) {
+        const retryPrompt = `${systemPrompt}\n\nYour previous draft started with a forbidden greeting or reused phrasing you have already used. Rewrite it: do NOT start with hi/hello/hey/etc., and make the opening sentence visibly different from your past openings.`;
+        const retry = await callClaude(ANTHROPIC_API_KEY, retryPrompt, item.trigger_message_content);
+        if (retry) reply = retry;
       }
 
-      const claudeJson = await claudeRes.json();
-      const reply: string = claudeJson?.content?.[0]?.text?.trim() || "";
       if (!reply) {
         await admin.from("seed_reply_queue")
           .update({ status: "failed", processed_at: new Date().toISOString() })
@@ -186,3 +184,56 @@ Hard rules:
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 });
+
+function firstSentence(text: string | null | undefined): string {
+  if (!text) return "";
+  const trimmed = text.trim();
+  const m = trimmed.match(/^[^.!?\n]{1,140}[.!?]?/);
+  return (m ? m[0] : trimmed.slice(0, 140)).trim();
+}
+
+const GENERIC_OPENERS = /^(hi|hello|hey+|hola|yo|sup|greetings|good\s+(morning|afternoon|evening|day))\b/i;
+
+function normalize(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function similarity(a: string, b: string): number {
+  const A = new Set(normalize(a).split(" ").filter((w) => w.length > 3));
+  const B = new Set(normalize(b).split(" ").filter((w) => w.length > 3));
+  if (!A.size || !B.size) return 0;
+  let inter = 0;
+  for (const w of A) if (B.has(w)) inter++;
+  return inter / Math.min(A.size, B.size);
+}
+
+function violatesOpening(reply: string, priorOpenings: string[]): boolean {
+  const opening = firstSentence(reply);
+  if (!opening) return false;
+  if (GENERIC_OPENERS.test(opening.trim())) return true;
+  return priorOpenings.some((p) => similarity(opening, p) >= 0.7);
+}
+
+async function callClaude(apiKey: string, systemPrompt: string, userMessage: string): Promise<string> {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
+    method: "POST",
+    headers: {
+      "x-api-key": apiKey,
+      "anthropic-version": "2023-06-01",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "claude-3-5-haiku-latest",
+      max_tokens: 400,
+      system: systemPrompt,
+      messages: [{ role: "user", content: userMessage }],
+    }),
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    console.warn("[process-seed-replies] claude error", res.status, txt.slice(0, 200));
+    return "";
+  }
+  const j = await res.json();
+  return (j?.content?.[0]?.text ?? "").trim();
+}
