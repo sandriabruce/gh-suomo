@@ -9,7 +9,7 @@ const corsHeaders = {
 
 // Plan -> amount in GHS (major units). Kept server-side so clients cannot tamper.
 const PLAN_AMOUNTS: Record<string, number> = {
-  verified: 80,
+  verified: 100,
   premium: 180,
   diamond: 350,
 };
