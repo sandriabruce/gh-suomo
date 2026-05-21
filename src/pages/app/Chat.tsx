@@ -431,9 +431,25 @@ export default function Chat() {
               !arr.slice(i + 1).some((n) => n.sender_id === user?.id && n.read_at);
             return (
               <div key={m.id} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
-                <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${mine ? "bg-ghana-gold text-ghana-brown" : "bg-muted text-foreground"}`}>
-                  {m.content}
-                </div>
+                {isImageMessage(m.content) ? (
+                  <a
+                    href={imageUrlFrom(m.content)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="max-w-[70%] overflow-hidden rounded-2xl border bg-muted"
+                  >
+                    <img
+                      src={imageUrlFrom(m.content)}
+                      alt="Shared"
+                      loading="lazy"
+                      className="block max-h-72 w-full object-cover"
+                    />
+                  </a>
+                ) : (
+                  <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${mine ? "bg-ghana-gold text-ghana-brown" : "bg-muted text-foreground"}`}>
+                    {m.content}
+                  </div>
+                )}
                 {isLastReadMine && (
                   <span className="mt-0.5 pr-1 text-[10px] text-muted-foreground">
                     Read {new Date(m.read_at!).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
