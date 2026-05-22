@@ -36,12 +36,13 @@ export default function Matches() {
       if (others.length === 0) return [];
       const { data: profiles } = await seedClient
         .from("profiles")
-        .select("id, first_name, age, city, country, photos")
+        .select("id, first_name, age, location, photos")
         .in("id", others);
       const byId = new Map((profiles ?? []).map((p) => [p.id, p]));
       return (rows ?? []).map((r) => {
         const otherId = r.user_a === user!.id ? r.user_b : r.user_a;
-        return { ...r, other: byId.get(otherId) };
+        const other = byId.get(otherId);
+        return { ...r, otherId, other };
       });
     },
   });
@@ -69,20 +70,18 @@ export default function Matches() {
       ) : (
         <div className="space-y-2">
           {matches.map((m) => {
-            const other = m.other as { id?: string; first_name?: string; age?: number; city?: string; country?: string; photos?: unknown } | undefined;
+            const other = m.other as { id?: string; first_name?: string; age?: number; location?: string; photos?: unknown } | undefined;
+            const otherId = (m as any).otherId as string;
             const photo = Array.isArray(other?.photos) ? (other!.photos[0] as string | undefined) : undefined;
-            const location = [other?.city, other?.country].filter(Boolean).join(", ");
             return (
               <Card key={m.id} className="flex items-center gap-3 rounded-2xl p-3 hover:bg-muted/40 transition">
                 {/* Tap photo/name to see profile */}
                 <button
                   type="button"
                   onClick={() => {
-                    if (other?.id) {
-                      setSelectedUserId(other.id);
-                      setSelectedMatchId(m.id);
-                      setProfileOpen(true);
-                    }
+                    setSelectedUserId(other?.id ?? otherId);
+                    setSelectedMatchId(m.id);
+                    setProfileOpen(true);
                   }}
                   className="flex min-w-0 flex-1 items-center gap-3 text-left"
                 >
@@ -93,7 +92,7 @@ export default function Matches() {
                     <p className="name-gold truncate font-display text-base font-semibold">
                       {other?.first_name ?? "Match"}{other?.age ? `, ${other.age}` : ""}
                     </p>
-                    {location && <p className="truncate text-xs text-muted-foreground">{location}</p>}
+                    {other?.location && <p className="truncate text-xs text-muted-foreground">{other.location}</p>}
                     <p className="text-[10px] text-muted-foreground">Tap to view profile</p>
                   </div>
                 </button>
