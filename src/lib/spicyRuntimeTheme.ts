@@ -12,21 +12,21 @@ html.spicy-mode #root {
 }
 
 html.spicy-mode {
-  --background: 0 85% 8% !important;
-  --card: 0 75% 14% !important;
+  --background: 0 90% 12% !important;
+  --card: 0 85% 18% !important;
   --primary: 43 80% 55% !important;
   --foreground: 30 60% 92% !important;
-  --border: 0 90% 35% !important;
-  --muted: 0 60% 18% !important;
+  --border: 0 90% 40% !important;
+  --muted: 0 70% 22% !important;
   --muted-foreground: 30 40% 72% !important;
-  --accent: 0 75% 14% !important;
+  --accent: 0 85% 18% !important;
   --accent-foreground: 30 60% 92% !important;
-  background-color: #3D0000 !important;
+  background-color: #6B0000 !important;
 }
 
 html.spicy-mode body {
-  background: linear-gradient(135deg, #3D0000 0%, #5C0000 50%, #3D0000 100%) !important;
-  background-color: #3D0000 !important;
+  background: linear-gradient(135deg, #6B0000 0%, #8B0000 40%, #6B0000 100%) !important;
+  background-color: #6B0000 !important;
   min-height: 100vh !important;
   color: #F5E6D3 !important;
 }
@@ -37,22 +37,22 @@ html.spicy-mode #root {
 }
 
 html.spicy-mode * {
-  --background: 0 85% 8% !important;
-  --card: 0 75% 14% !important;
+  --background: 0 90% 12% !important;
+  --card: 0 85% 18% !important;
   --primary: 43 80% 55% !important;
   --foreground: 30 60% 92% !important;
-  --border: 0 90% 35% !important;
+  --border: 0 90% 40% !important;
 }
 
 html.spicy-mode div[class*="bg-background"],
 html.spicy-mode main[class*="bg-background"],
 html.spicy-mode section[class*="bg-background"] {
-  background-color: #3D0000 !important;
+  background-color: #6B0000 !important;
 }
 
 html.spicy-mode div[class*="bg-card"],
 html.spicy-mode [class*="bg-card"] {
-  background-color: #5C0000 !important;
+  background-color: #8B0000 !important;
 }
 
 html.spicy-mode [class*="bg-primary"] {
@@ -68,11 +68,11 @@ html.spicy-mode [class*="text-primary"] {
 }
 
 html.spicy-mode [class*="border-border"] {
-  border-color: #8B0000 !important;
+  border-color: #CC0000 !important;
 }
 
 html.spicy-mode [class*="bg-muted"] {
-  background-color: #5C0000 !important;
+  background-color: #8B0000 !important;
 }
 `;
 
@@ -101,7 +101,8 @@ function ensureSpicyStyleTag() {
 
 function paintSpicyBody() {
   if (typeof document === "undefined" || !document.body) return;
-  document.body.style.background = "linear-gradient(135deg, #1A0000 0%, #2D0000 100%)";
+  document.body.style.background = "linear-gradient(135deg, #6B0000 0%, #8B0000 40%, #6B0000 100%)";
+  document.body.style.backgroundColor = "#6B0000";
   document.body.style.minHeight = "100vh";
 }
 

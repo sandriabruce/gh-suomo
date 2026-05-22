@@ -312,6 +312,15 @@ export default function Discover() {
   }
 
   const isSpicy = useIsSpicyModeActive();
+  const [showSpicyWelcome, setShowSpicyWelcome] = useState(false);
+
+  function handleSpicyToggle(active: boolean) {
+    setSpicyModeActive(active);
+    if (active) {
+      setShowSpicyWelcome(true);
+      setTimeout(() => setShowSpicyWelcome(false), 4000);
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -345,19 +354,36 @@ export default function Discover() {
 
       {/* Sweet / Spicy toggle — Diamond only */}
       {plan === "diamond" && (
-        <div className="flex items-center justify-center gap-2 rounded-2xl border border-ghana-gold/20 bg-card p-2">
-          <button
-            onClick={() => setSpicyModeActive(false)}
-            className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-2 text-sm font-semibold transition ${!isSpicy ? "bg-ghana-gold text-ghana-brown shadow" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            <Heart className="h-4 w-4" /> Sweet
-          </button>
-          <button
-            onClick={() => setSpicyModeActive(true)}
-            className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-2 text-sm font-semibold transition ${isSpicy ? "bg-gradient-to-r from-red-900 to-red-800 text-amber-300 shadow" : "text-muted-foreground hover:text-foreground"}`}
-          >
-            <Flame className="h-4 w-4" /> Spicy
-          </button>
+        <div className="relative">
+          <div className="flex items-center justify-center gap-2 rounded-2xl border border-ghana-gold/20 bg-card p-2">
+            <button
+              onClick={() => handleSpicyToggle(false)}
+              className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-2 text-sm font-semibold transition ${!isSpicy ? "bg-ghana-gold text-ghana-brown shadow" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <Heart className="h-4 w-4" /> Sweet
+            </button>
+            <button
+              onClick={() => handleSpicyToggle(true)}
+              className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-2 text-sm font-semibold transition ${isSpicy ? "bg-gradient-to-r from-red-700 to-red-600 text-amber-300 shadow" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <Flame className="h-4 w-4" /> Spicy
+            </button>
+          </div>
+
+          {/* Welcome to the spicy side banner */}
+          {showSpicyWelcome && (
+            <div
+              className="absolute left-0 right-0 z-50 mt-2 animate-in fade-in slide-in-from-top-2 duration-500"
+              style={{ animation: "fadeInDown 0.5s ease" }}
+            >
+              <div className="rounded-2xl border border-amber-400/40 p-4 text-center shadow-xl"
+                style={{ background: "linear-gradient(135deg, #6B0000, #8B0000)" }}>
+                <div className="text-2xl mb-1">🔥</div>
+                <p className="font-bold text-amber-300 text-base">Welcome to the Spicy Side</p>
+                <p className="text-amber-100/80 text-xs mt-1">Bolder energy. Adults 40+ only. Suggestive — not explicit.</p>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
