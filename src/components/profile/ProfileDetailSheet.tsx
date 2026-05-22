@@ -98,7 +98,7 @@ export function ProfileDetailSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="flex h-[92dvh] max-h-[92dvh] flex-col overflow-hidden rounded-t-3xl p-0">
+      <SheetContent side="bottom" className="flex h-[92dvh] max-h-[92dvh] flex-col overflow-hidden rounded-t-3xl p-0" style={{ background: "#ffffff", color: "#1a1a1a" }}>
         {isLoading || !profile ? (
           <div className="p-5 space-y-3">
             <Skeleton className="h-[40vh] w-full rounded-2xl" />
@@ -208,7 +208,7 @@ export function ProfileDetailSheet({
                 </div>
               )}
 
-              <div className="sticky bottom-0 -mx-5 mt-2 flex gap-3 border-t bg-background/95 px-5 py-3 backdrop-blur">
+              <div className="sticky bottom-0 -mx-5 mt-2 flex gap-3 border-t px-5 py-3 backdrop-blur" style={{ background: "rgba(255,255,255,0.95)" }}>
                 <Button
                   onClick={() => {
                     if (matchId) {

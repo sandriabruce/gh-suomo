@@ -500,7 +500,7 @@ export default function Discover() {
       <InstallBanner />
 
       <Sheet open={!!openPerson} onOpenChange={(o) => !o && setOpenId(null)}>
-        <SheetContent side="bottom" className="flex h-[92dvh] max-h-[92dvh] flex-col overflow-hidden rounded-t-3xl p-0">
+        <SheetContent side="bottom" className="flex h-[92dvh] max-h-[92dvh] flex-col overflow-hidden rounded-t-3xl p-0" style={{ background: "#ffffff", color: "#1a1a1a" }}>
           {openPerson && (
             <>
               {openPerson.photos.length > 0 && (
@@ -645,7 +645,7 @@ export default function Discover() {
                   </Button>
                 </div>
 
-                <div className="sticky bottom-0 -mx-5 mt-2 flex gap-3 border-t bg-background/95 px-5 py-3 backdrop-blur">
+                <div className="sticky bottom-0 -mx-5 mt-2 flex gap-3 border-t px-5 py-3 backdrop-blur" style={{ background: "rgba(255,255,255,0.95)" }}>
                   <Button
                     onClick={() => { handleLikeFromSheet(openPerson.id); setOpenId(null); }}
                     className="flex-1 bg-ghana-gold text-ghana-brown hover:bg-ghana-gold/90"
