@@ -64,7 +64,7 @@ export function AppShell() {
   return (
     <div className="flex min-h-screen flex-col bg-gradient-warm">
       <header className="sticky top-0 z-30 flex items-center justify-between border-b bg-background/90 px-4 py-3 backdrop-blur">
-        <Link to="/" aria-label="Go to home" className="rounded-md focus:outline-none focus:ring-2 focus:ring-ghana-gold">
+        <Link to="/app/discover" aria-label="Go to discover" className="rounded-md focus:outline-none focus:ring-2 focus:ring-ghana-gold">
           <Logo size="sm" />
         </Link>
         <DropdownMenu>

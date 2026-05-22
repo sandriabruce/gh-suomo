@@ -432,7 +432,7 @@ export default function Chat() {
           className="h-9 w-9 shrink-0 bg-ghana-gold text-ghana-brown hover:bg-ghana-gold/90"
           aria-label="Back to matches"
         >
-          <Link to="/app/chat"><ArrowLeft className="h-5 w-5" /></Link>
+          <Link to="/app/matches"><ArrowLeft className="h-5 w-5" /></Link>
         </Button>
         <button
           type="button"

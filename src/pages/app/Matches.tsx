@@ -9,13 +9,18 @@ import { supabase } from "@/integrations/supabase/client";
 import { seedClient } from "@/integrations/supabase/seedClient";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { Logo } from "@/components/brand/Logo";
-import { Compass } from "lucide-react";
+import { Compass, MessageCircle } from "lucide-react";
+import { useState } from "react";
+import { ProfileDetailSheet } from "@/components/profile/ProfileDetailSheet";
 
 export default function Matches() {
   const { limits } = useEntitlements();
   const { user } = useAuth();
   const { data: unread } = useUnreadMessages();
   const navigate = useNavigate();
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
 
   const { data: matches, isLoading } = useQuery({
     queryKey: ["matches", user?.id],
@@ -64,17 +69,23 @@ export default function Matches() {
       ) : (
         <div className="space-y-2">
           {matches.map((m) => {
-            const other = m.other as { first_name?: string; age?: number; city?: string; country?: string; photos?: unknown } | undefined;
+            const other = m.other as { id?: string; first_name?: string; age?: number; city?: string; country?: string; photos?: unknown } | undefined;
             const photo = Array.isArray(other?.photos) ? (other!.photos[0] as string | undefined) : undefined;
             const location = [other?.city, other?.country].filter(Boolean).join(", ");
             return (
-              <button
-                key={m.id}
-                type="button"
-                onClick={() => navigate(`/app/chat/${m.id}`)}
-                className="w-full text-left"
-              >
-                <Card className="flex items-center gap-3 rounded-2xl p-3 hover:bg-muted/40 transition">
+              <Card key={m.id} className="flex items-center gap-3 rounded-2xl p-3 hover:bg-muted/40 transition">
+                {/* Tap photo/name to see profile */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (other?.id) {
+                      setSelectedUserId(other.id);
+                      setSelectedMatchId(m.id);
+                      setProfileOpen(true);
+                    }
+                  }}
+                  className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                >
                   <div className="h-12 w-12 overflow-hidden rounded-full bg-muted shrink-0">
                     {photo ? <img src={photo} alt={other?.first_name ?? "Match"} className="h-full w-full object-cover" /> : null}
                   </div>
@@ -83,20 +94,35 @@ export default function Matches() {
                       {other?.first_name ?? "Match"}{other?.age ? `, ${other.age}` : ""}
                     </p>
                     {location && <p className="truncate text-xs text-muted-foreground">{location}</p>}
+                    <p className="text-[10px] text-muted-foreground">Tap to view profile</p>
                   </div>
+                </button>
+                {/* Chat button */}
+                <button
+                  type="button"
+                  onClick={() => navigate(`/app/chat/${m.id}`)}
+                  className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ghana-gold text-ghana-brown hover:bg-ghana-gold/90 transition"
+                  aria-label="Open chat"
+                >
+                  <MessageCircle className="h-5 w-5" />
                   {unread?.perMatch?.[m.id] ? (
-                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-ghana-red px-1.5 text-[11px] font-bold text-white">
+                    <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-ghana-red px-1 text-[10px] font-bold text-white">
                       {unread.perMatch[m.id] > 9 ? "9+" : unread.perMatch[m.id]}
                     </span>
-                  ) : (
-                    <span className="text-xs text-muted-foreground capitalize">{m.status}</span>
-                  )}
-                </Card>
-              </button>
+                  ) : null}
+                </button>
+              </Card>
             );
           })}
         </div>
       )}
+
+      <ProfileDetailSheet
+        userId={selectedUserId}
+        open={profileOpen}
+        onOpenChange={setProfileOpen}
+        matchId={selectedMatchId}
+      />
 
       {!limits.canChat && (
         <p className="text-xs text-muted-foreground">
