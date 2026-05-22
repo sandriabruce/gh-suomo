@@ -8,6 +8,7 @@ import { Card } from "@/components/ui/card";
 import { Logo } from "@/components/brand/Logo";
 import { GHANA_CITIES, RELIGIONS, ETHNICITIES, INTERESTS, PROMPTS } from "@/lib/brand";
 import { supabase } from "@/integrations/supabase/client";
+import { seedClient } from "@/integrations/supabase/seedClient";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { imageHasFace } from "@/features/face/detectFace";
@@ -303,7 +304,7 @@ export default function Onboarding() {
     // Seed 5 starter matches from is_seed profiles aligned with their preference.
     try {
       // Find existing matches for this user so we don't duplicate on re-runs/retries.
-      const { data: existing } = await supabase
+      const { data: existing } = await seedClient
         .from("matches")
         .select("user_a,user_b")
         .or(`user_a.eq.${user.id},user_b.eq.${user.id}`);
@@ -322,12 +323,11 @@ export default function Onboarding() {
         const desiredGender =
         form.interested_in === "Women" ? "Woman" :
         form.interested_in === "Men" ? "Man" : null;
-        let seedQuery = supabase
+        let seedQuery = seedClient
         .from("profiles")
         .select("id")
         .eq("is_seed", true)
         .eq("onboarded", true)
-        .eq("banned", false)
         .neq("id", user.id)
           .limit(remaining + alreadyMatched.size);
         if (desiredGender) seedQuery = seedQuery.eq("gender", desiredGender);
@@ -340,7 +340,7 @@ export default function Onboarding() {
             status: "active" as const,
             score: 80,
           }));
-          await supabase.from("matches").insert(rows);
+          await seedClient.from("matches").insert(rows);
         }
       }
     } catch (e) {
