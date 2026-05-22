@@ -54,14 +54,14 @@
         }
         if (!active) return;
 
-        document.documentElement.style.setProperty("--background", "#1A0000");
-        document.documentElement.style.setProperty("--card", "#2D0A0A");
-        document.documentElement.style.setProperty("--primary", "#C9A84C");
-        document.documentElement.style.setProperty("--foreground", "#F5E6D3");
-        document.documentElement.style.setProperty("--border", "#8B0000");
+        document.documentElement.style.setProperty("--background", "0 85% 8%");
+        document.documentElement.style.setProperty("--card", "0 75% 14%");
+        document.documentElement.style.setProperty("--primary", "43 80% 55%");
+        document.documentElement.style.setProperty("--foreground", "30 60% 92%");
+        document.documentElement.style.setProperty("--border", "0 90% 35%");
         document.documentElement.classList.add("spicy-mode");
 
-        var css = "html.spicy-mode,html.spicy-mode body{transition:background 0.8s ease,color 0.8s ease!important}html.spicy-mode{--background:#1A0000!important;--card:#2D0A0A!important;--primary:#C9A84C!important;--foreground:#F5E6D3!important;--border:#8B0000!important}html.spicy-mode body{background:linear-gradient(135deg,#1A0000 0%,#2D0000 100%)!important;min-height:100vh!important;color:#F5E6D3!important}html.spicy-mode #root{min-height:100vh!important;background:transparent!important}html.spicy-mode .bg-background,html.spicy-mode [class*=\"bg-background\"]{background-color:#1A0000!important}html.spicy-mode .bg-card,html.spicy-mode [class*=\"bg-card\"]{background-color:#2D0A0A!important}html.spicy-mode .bg-primary,html.spicy-mode [class*=\"bg-primary\"]{background-color:#C9A84C!important}html.spicy-mode .text-foreground,html.spicy-mode [class*=\"text-foreground\"]{color:#F5E6D3!important}html.spicy-mode .text-primary,html.spicy-mode [class*=\"text-primary\"]{color:#C9A84C!important}html.spicy-mode .border-border,html.spicy-mode [class*=\"border-border\"]{border-color:#8B0000!important}";
+        var css = "html.spicy-mode body{background:linear-gradient(135deg,#3D0000 0%,#5C0000 50%,#3D0000 100%)!important;background-color:#3D0000!important;min-height:100vh!important;color:#F5E6D3!important}html.spicy-mode #root{min-height:100vh!important;background:transparent!important}html.spicy-mode div[class*='bg-background'],html.spicy-mode main[class*='bg-background']{background-color:#3D0000!important}html.spicy-mode [class*='bg-card']{background-color:#5C0000!important}html.spicy-mode [class*='bg-muted']{background-color:#5C0000!important}html.spicy-mode [class*='text-foreground']{color:#F5E6D3!important}html.spicy-mode [class*='text-primary']{color:#C9A84C!important}html.spicy-mode [class*='border-border']{border-color:#8B0000!important}";
         var style = document.getElementById("spicy-mode-runtime-theme");
         if (!style) {
           style = document.createElement("style");
@@ -74,7 +74,7 @@
         function paintBody() {
           if (!document.body) return;
           document.body.style.cssText =
-            "background: linear-gradient(135deg, #1A0000 0%, #2D0000 100%) !important; min-height: 100vh;";
+            "background: linear-gradient(135deg, #3D0000 0%, #5C0000 50%, #3D0000 100%) !important; background-color: #3D0000 !important; min-height: 100vh;";
         }
         if (document.body) paintBody();
         else document.addEventListener("DOMContentLoaded", paintBody, { once: true });

@@ -12,21 +12,21 @@ html.spicy-mode #root {
 }
 
 html.spicy-mode {
-  --background: 0 100% 7% !important;
-  --card: 0 71% 12% !important;
-  --primary: 43 52% 55% !important;
-  --foreground: 30 47% 91% !important;
-  --border: 0 100% 27% !important;
-  --muted: 0 50% 15% !important;
-  --muted-foreground: 30 30% 70% !important;
-  --accent: 0 71% 12% !important;
-  --accent-foreground: 30 47% 91% !important;
-  background-color: #1A0000 !important;
+  --background: 0 85% 8% !important;
+  --card: 0 75% 14% !important;
+  --primary: 43 80% 55% !important;
+  --foreground: 30 60% 92% !important;
+  --border: 0 90% 35% !important;
+  --muted: 0 60% 18% !important;
+  --muted-foreground: 30 40% 72% !important;
+  --accent: 0 75% 14% !important;
+  --accent-foreground: 30 60% 92% !important;
+  background-color: #3D0000 !important;
 }
 
 html.spicy-mode body {
-  background: linear-gradient(135deg, #1A0000 0%, #2D0000 100%) !important;
-  background-color: #1A0000 !important;
+  background: linear-gradient(135deg, #3D0000 0%, #5C0000 50%, #3D0000 100%) !important;
+  background-color: #3D0000 !important;
   min-height: 100vh !important;
   color: #F5E6D3 !important;
 }
@@ -37,22 +37,22 @@ html.spicy-mode #root {
 }
 
 html.spicy-mode * {
-  --background: 0 100% 7% !important;
-  --card: 0 71% 12% !important;
-  --primary: 43 52% 55% !important;
-  --foreground: 30 47% 91% !important;
-  --border: 0 100% 27% !important;
+  --background: 0 85% 8% !important;
+  --card: 0 75% 14% !important;
+  --primary: 43 80% 55% !important;
+  --foreground: 30 60% 92% !important;
+  --border: 0 90% 35% !important;
 }
 
 html.spicy-mode div[class*="bg-background"],
 html.spicy-mode main[class*="bg-background"],
 html.spicy-mode section[class*="bg-background"] {
-  background-color: #1A0000 !important;
+  background-color: #3D0000 !important;
 }
 
 html.spicy-mode div[class*="bg-card"],
 html.spicy-mode [class*="bg-card"] {
-  background-color: #2D0A0A !important;
+  background-color: #5C0000 !important;
 }
 
 html.spicy-mode [class*="bg-primary"] {
@@ -72,7 +72,7 @@ html.spicy-mode [class*="border-border"] {
 }
 
 html.spicy-mode [class*="bg-muted"] {
-  background-color: #2D0A0A !important;
+  background-color: #5C0000 !important;
 }
 `;
 
