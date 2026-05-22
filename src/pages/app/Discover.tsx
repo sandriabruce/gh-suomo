@@ -1,7 +1,7 @@
 import { SafetyBanner } from "@/components/safety/SafetyBanner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Heart, MessageCircle, BadgeCheck, ShieldAlert, Flag, Flame } from "lucide-react";
+import { Heart, MessageCircle, BadgeCheck, ShieldAlert, Flag, Flame, Ban } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
