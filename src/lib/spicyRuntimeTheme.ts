@@ -2,24 +2,31 @@ export const SPICY_MODE_STORAGE_KEY = "spicy-mode:active:v1";
 export const SPICY_MODE_STORAGE_KEY_CANONICAL = "spicy_mode";
 export const SPICY_MODE_EVENT = "spicy-mode-change";
 export const SPICY_MODE_CSS_ID = "spicy-mode-runtime-theme";
-export const SPICY_MODE_CSS_VERSION = "spicy-crimson-20260521";
+export const SPICY_MODE_CSS_VERSION = "spicy-crimson-20260522";
 
 const SPICY_MODE_CSS = `
 html.spicy-mode,
-html.spicy-mode body {
-  transition: background 0.8s ease, color 0.8s ease !important;
+html.spicy-mode body,
+html.spicy-mode #root {
+  transition: background 0.8s ease, color 0.8s ease, background-color 0.8s ease !important;
 }
 
 html.spicy-mode {
-  --background: #1A0000 !important;
-  --card: #2D0A0A !important;
-  --primary: #C9A84C !important;
-  --foreground: #F5E6D3 !important;
-  --border: #8B0000 !important;
+  --background: 0 100% 7% !important;
+  --card: 0 71% 12% !important;
+  --primary: 43 52% 55% !important;
+  --foreground: 30 47% 91% !important;
+  --border: 0 100% 27% !important;
+  --muted: 0 50% 15% !important;
+  --muted-foreground: 30 30% 70% !important;
+  --accent: 0 71% 12% !important;
+  --accent-foreground: 30 47% 91% !important;
+  background-color: #1A0000 !important;
 }
 
 html.spicy-mode body {
   background: linear-gradient(135deg, #1A0000 0%, #2D0000 100%) !important;
+  background-color: #1A0000 !important;
   min-height: 100vh !important;
   color: #F5E6D3 !important;
 }
@@ -29,34 +36,43 @@ html.spicy-mode #root {
   background: transparent !important;
 }
 
-html.spicy-mode .bg-background,
-html.spicy-mode [class*="bg-background"] {
+html.spicy-mode * {
+  --background: 0 100% 7% !important;
+  --card: 0 71% 12% !important;
+  --primary: 43 52% 55% !important;
+  --foreground: 30 47% 91% !important;
+  --border: 0 100% 27% !important;
+}
+
+html.spicy-mode div[class*="bg-background"],
+html.spicy-mode main[class*="bg-background"],
+html.spicy-mode section[class*="bg-background"] {
   background-color: #1A0000 !important;
 }
 
-html.spicy-mode .bg-card,
+html.spicy-mode div[class*="bg-card"],
 html.spicy-mode [class*="bg-card"] {
   background-color: #2D0A0A !important;
 }
 
-html.spicy-mode .bg-primary,
 html.spicy-mode [class*="bg-primary"] {
   background-color: #C9A84C !important;
 }
 
-html.spicy-mode .text-foreground,
 html.spicy-mode [class*="text-foreground"] {
   color: #F5E6D3 !important;
 }
 
-html.spicy-mode .text-primary,
 html.spicy-mode [class*="text-primary"] {
   color: #C9A84C !important;
 }
 
-html.spicy-mode .border-border,
 html.spicy-mode [class*="border-border"] {
   border-color: #8B0000 !important;
+}
+
+html.spicy-mode [class*="bg-muted"] {
+  background-color: #2D0A0A !important;
 }
 `;
 

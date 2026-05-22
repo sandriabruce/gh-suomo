@@ -1,7 +1,7 @@
 import { SafetyBanner } from "@/components/safety/SafetyBanner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Heart, MessageCircle, BadgeCheck, ShieldAlert, Flag, Ban } from "lucide-react";
+import { Heart, MessageCircle, BadgeCheck, ShieldAlert, Flag, Flame } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
@@ -17,6 +17,7 @@ import { InstallBanner } from "@/components/pwa/InstallBanner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
+import { setSpicyModeActive, useIsSpicyModeActive } from "@/hooks/useSpicyTheme";
 import {
   Carousel,
   CarouselContent,
@@ -165,9 +166,8 @@ export default function Discover() {
       const to = from + PAGE_SIZE - 1;
       const { data, error } = await seedClient
         .from("profiles")
-        .select("id, first_name, age, location, bio, photos, interests, prompts, ethnicity, verified")
+        .select("id, first_name, age, location, bio, photos, verified")
         .eq("is_seed", true)
-        .eq("banned", false)
         .in("gender", targetGenders)
         .order("id", { ascending: true })
         .range(from, to);
@@ -311,10 +311,56 @@ export default function Discover() {
     setI((x) => x + 1);
   }
 
+  const isSpicy = useIsSpicyModeActive();
+
   return (
     <div className="space-y-4">
       <SafetyBanner message="Tip: Real connections take time. Never send money to anyone you meet here." />
       <TrialBadge />
+
+      {/* User profile card at top */}
+      {profile && (
+        <div className="flex items-center gap-3 rounded-2xl border border-ghana-gold/30 bg-card p-3 shadow-sm">
+          <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border-2 border-ghana-gold">
+            {profile.photos?.[0] ? (
+              <img src={profile.photos[0]} alt={profile.first_name ?? "You"} className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center bg-ghana-gold/20 text-ghana-gold font-bold text-lg">
+                {(profile.first_name ?? "?")[0]}
+              </div>
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-semibold text-sm truncate">{profile.first_name ?? "Your profile"}{profile.age ? `, ${profile.age}` : ""}</p>
+            <p className="text-xs text-muted-foreground truncate">{profile.location ?? "Add your location"}</p>
+          </div>
+          <button
+            onClick={() => navigate("/app/profile")}
+            className="text-xs text-ghana-gold border border-ghana-gold/40 rounded-full px-3 py-1 hover:bg-ghana-gold/10 transition"
+          >
+            Edit
+          </button>
+        </div>
+      )}
+
+      {/* Sweet / Spicy toggle — Diamond only */}
+      {plan === "diamond" && (
+        <div className="flex items-center justify-center gap-2 rounded-2xl border border-ghana-gold/20 bg-card p-2">
+          <button
+            onClick={() => setSpicyModeActive(false)}
+            className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-2 text-sm font-semibold transition ${!isSpicy ? "bg-ghana-gold text-ghana-brown shadow" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <Heart className="h-4 w-4" /> Sweet
+          </button>
+          <button
+            onClick={() => setSpicyModeActive(true)}
+            className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-2 text-sm font-semibold transition ${isSpicy ? "bg-gradient-to-r from-red-900 to-red-800 text-amber-300 shadow" : "text-muted-foreground hover:text-foreground"}`}
+          >
+            <Flame className="h-4 w-4" /> Spicy
+          </button>
+        </div>
+      )}
+
       {limit !== null && (
         <p className="text-xs text-muted-foreground">
           {plan === "explorer" || plan === "verified"

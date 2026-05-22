@@ -57,7 +57,7 @@ export function AdinkraOverlay() {
     <div
       aria-hidden
       className="pointer-events-none fixed inset-0 z-[9999] overflow-hidden"
-      style={{ opacity: 0.14 }}
+      style={{ opacity: 0.22 }}
     >
       <div className="relative h-[200vh] w-full">
         {spots.map((s, idx) => {
@@ -74,7 +74,7 @@ export function AdinkraOverlay() {
                 width: sym.size,
                 height: sym.size,
                 transform: `rotate(${s.rot}deg)`,
-                filter: "invert(1) sepia(1) saturate(2) hue-rotate(5deg) brightness(0.9)",
+                filter: "invert(75%) sepia(80%) saturate(600%) hue-rotate(5deg) brightness(1.1)",
                 opacity: 1,
                 objectFit: "contain",
               }}
