@@ -4,6 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -34,6 +35,7 @@ export function AppShell() {
   const location = useLocation();
   const { data: profile, isLoading: profileLoading } = useProfile();
   const { data: unread } = useUnreadMessages();
+  usePushNotifications();
   const allTabs = isAdmin ? [...tabs, { to: "/app/admin", label: "Admin", icon: Crown }] : tabs;
   const shouldGateProfile = !location.pathname.startsWith("/app/admin");
   const profileIncomplete = shouldGateProfile && !profileLoading && (
