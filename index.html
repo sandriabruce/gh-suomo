@@ -93,35 +93,43 @@
         });
       }
 
-      // Detect iOS Safari
+      // Detect device and browser
       var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
       var isInStandaloneMode = ('standalone' in window.navigator) && window.navigator.standalone;
-      var isSafari = /safari/i.test(navigator.userAgent) && !/chrome/i.test(navigator.userAgent);
+      var isSafari = /safari/i.test(navigator.userAgent) && !/chrome|crios|fxios|android/i.test(navigator.userAgent);
+      var isAndroid = /android/i.test(navigator.userAgent);
+      var isMIUI = /miuibrowser|xiaomi/i.test(navigator.userAgent);
+      var isChrome = /chrome|crios/i.test(navigator.userAgent) && !/edge/i.test(navigator.userAgent);
+      var isInstalled = window.matchMedia('(display-mode: standalone)').matches || isInStandaloneMode;
 
-      // iOS install banner — shows manually since iOS doesn't support beforeinstallprompt
-      if (isIOS && isSafari && !isInStandaloneMode && !localStorage.getItem('pwa-dismissed')) {
+      function showBanner(html) {
+        if (localStorage.getItem('pwa-dismissed') || isInstalled) return;
         document.addEventListener('DOMContentLoaded', function() {
+          if (document.getElementById('pwa-banner')) return;
           var banner = document.createElement('div');
           banner.id = 'pwa-banner';
-          banner.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#1a0a00;border-top:2px solid #C9A84C;padding:16px;z-index:9999;display:flex;align-items:center;justify-content:space-between;box-shadow:0 -4px 20px rgba(0,0,0,0.5);';
-          banner.innerHTML = '<div style="color:#F5E6D3;font-size:13px;flex:1;margin-right:12px;line-height:1.4;"><strong style="color:#C9A84C;">Install GH Suɔmɔ</strong><br>Tap <strong style="color:#C9A84C;">Share</strong> \u2197 then <strong style="color:#C9A84C;">Add to Home Screen</strong></div><button onclick="document.getElementById(\'pwa-banner\').remove();localStorage.setItem(\'pwa-dismissed\',\'1\')" style="background:transparent;color:#F5E6D3;border:1px solid #C9A84C;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;white-space:nowrap;">Got it</button>';
+          banner.innerHTML = html;
           document.body.appendChild(banner);
         });
       }
 
-      // Android/Chrome install prompt
+      // iOS Safari — manual instructions
+      if (isIOS && isSafari && !isInstalled) {
+        showBanner('<div style="position:fixed;bottom:0;left:0;right:0;background:#1a0a00;border-top:2px solid #C9A84C;padding:16px;z-index:9999;display:flex;align-items:center;justify-content:space-between;box-shadow:0 -4px 20px rgba(0,0,0,0.5);"><div style="color:#F5E6D3;font-size:13px;flex:1;margin-right:12px;line-height:1.5;"><strong style="color:#C9A84C;">Install GH Suɔmɔ</strong><br>Tap <strong style="color:#C9A84C;">Share \u2197</strong> then <strong style="color:#C9A84C;">Add to Home Screen</strong></div><button onclick="document.getElementById(\'pwa-banner\').remove();localStorage.setItem(\'pwa-dismissed\',\'1\')" style="background:transparent;color:#F5E6D3;border:1px solid #C9A84C;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;white-space:nowrap;">Got it</button></div>');
+      }
+
+      // MIUI browser — show manual instructions since beforeinstallprompt unreliable
+      if (isAndroid && isMIUI && !isInstalled) {
+        showBanner('<div style="position:fixed;bottom:0;left:0;right:0;background:#1a0a00;border-top:2px solid #C9A84C;padding:16px;z-index:9999;display:flex;align-items:center;justify-content:space-between;box-shadow:0 -4px 20px rgba(0,0,0,0.5);"><div style="color:#F5E6D3;font-size:13px;flex:1;margin-right:12px;line-height:1.5;"><strong style="color:#C9A84C;">Install GH Suɔmɔ</strong><br>Tap the <strong style="color:#C9A84C;">menu (\u22EE)</strong> then <strong style="color:#C9A84C;">Add to Home Screen</strong></div><button onclick="document.getElementById(\'pwa-banner\').remove();localStorage.setItem(\'pwa-dismissed\',\'1\')" style="background:transparent;color:#F5E6D3;border:1px solid #C9A84C;border-radius:8px;padding:6px 12px;font-size:12px;cursor:pointer;white-space:nowrap;">Got it</button></div>');
+      }
+
+      // Android Chrome — use native beforeinstallprompt
       var deferredPrompt;
       window.addEventListener('beforeinstallprompt', function(e) {
         e.preventDefault();
         deferredPrompt = e;
-        if (!localStorage.getItem('pwa-dismissed') && !isIOS) {
-          document.addEventListener('DOMContentLoaded', function() {
-            var banner = document.createElement('div');
-            banner.id = 'pwa-banner';
-            banner.style.cssText = 'position:fixed;bottom:80px;left:16px;right:16px;background:#1a0a00;border:1px solid #C9A84C;border-radius:12px;padding:16px;z-index:9999;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 20px rgba(0,0,0,0.5);';
-            banner.innerHTML = '<div style="color:#F5E6D3;font-size:14px;flex:1;margin-right:12px;"><strong style="color:#C9A84C;">Install GH Suɔmɔ</strong><br>Add to your home screen for the best experience</div><button onclick="installApp()" style="background:#C9A84C;color:#1a0a00;border:none;padding:8px 16px;border-radius:8px;font-weight:700;cursor:pointer;margin-right:8px;">Install</button><button onclick="document.getElementById(\'pwa-banner\').remove();localStorage.setItem(\'pwa-dismissed\',\'1\')" style="background:transparent;color:#F5E6D3;border:none;font-size:20px;cursor:pointer;padding:4px;">\u00D7</button>';
-            document.body.appendChild(banner);
-          });
+        if (!localStorage.getItem('pwa-dismissed') && !isInstalled) {
+          showBanner('<div style="position:fixed;bottom:80px;left:16px;right:16px;background:#1a0a00;border:1px solid #C9A84C;border-radius:12px;padding:16px;z-index:9999;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 20px rgba(0,0,0,0.5);"><div style="color:#F5E6D3;font-size:14px;flex:1;margin-right:12px;"><strong style="color:#C9A84C;">Install GH Suɔmɔ</strong><br><span style="font-size:12px;">Add to your home screen for the best experience</span></div><button onclick="window.installApp()" style="background:#C9A84C;color:#1a0a00;border:none;padding:8px 14px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px;margin-right:8px;">Install</button><button onclick="document.getElementById(\'pwa-banner\').remove();localStorage.setItem(\'pwa-dismissed\',\'1\')" style="background:transparent;color:#F5E6D3;border:none;font-size:22px;cursor:pointer;padding:2px 6px;">\u00D7</button></div>');
         }
       });
 
