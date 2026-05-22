@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { seedClient } from "@/integrations/supabase/seedClient";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -72,7 +73,7 @@ export function ProfileDetailSheet({
     queryKey: ["profile-detail", userId],
     enabled: !!userId && open,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data } = await seedClient
         .from("profiles")
         .select("id, first_name, age, location, bio, ethnicity, verified, photos, interests, prompts")
         .eq("id", userId!)
