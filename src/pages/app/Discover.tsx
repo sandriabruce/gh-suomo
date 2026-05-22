@@ -315,16 +315,25 @@ export default function Discover() {
   const [showSpicyWelcome, setShowSpicyWelcome] = useState(false);
 
   function handleSpicyToggle(active: boolean) {
-    setSpicyModeActive(active);
-    if (active) {
+    if (active && !isSpicy) {
+      // Show welcome banner BEFORE applying theme so state isn't wiped by re-render
       setShowSpicyWelcome(true);
-      setTimeout(() => setShowSpicyWelcome(false), 4000);
+      setTimeout(() => {
+        setSpicyModeActive(true);
+      }, 100);
+      setTimeout(() => setShowSpicyWelcome(false), 4500);
+    } else {
+      setSpicyModeActive(active);
+      setShowSpicyWelcome(false);
     }
   }
 
   return (
     <div className="space-y-4">
-      <SafetyBanner message="Tip: Real connections take time. Never send money to anyone you meet here." />
+      {/* Safety banner — adapts colour for spicy mode */}
+      <div className={`rounded-xl px-3 py-2 text-xs ${isSpicy ? "border border-amber-400/30 bg-amber-400/10 text-amber-200" : "border border-red-200 bg-red-50 text-red-700"}`}>
+        💛 Tip: Real connections take time. Never send money to anyone you meet here.
+      </div>
       <TrialBadge />
 
       {/* User profile card at top */}
@@ -355,33 +364,49 @@ export default function Discover() {
       {/* Sweet / Spicy toggle — Diamond only */}
       {plan === "diamond" && (
         <div className="relative">
-          <div className="flex items-center justify-center gap-2 rounded-2xl border border-ghana-gold/20 bg-card p-2">
-            <button
-              onClick={() => handleSpicyToggle(false)}
-              className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-2 text-sm font-semibold transition ${!isSpicy ? "bg-ghana-gold text-ghana-brown shadow" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              <Heart className="h-4 w-4" /> Sweet
-            </button>
-            <button
-              onClick={() => handleSpicyToggle(true)}
-              className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-2 text-sm font-semibold transition ${isSpicy ? "bg-gradient-to-r from-red-700 to-red-600 text-amber-300 shadow" : "text-muted-foreground hover:text-foreground"}`}
-            >
-              <Flame className="h-4 w-4" /> Spicy
-            </button>
+          <div className="rounded-2xl border border-ghana-gold/20 bg-card p-2">
+            <div className="flex items-center justify-center gap-2">
+              <button
+                onClick={() => handleSpicyToggle(false)}
+                className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-2 text-sm font-semibold transition ${!isSpicy ? "bg-ghana-gold text-ghana-brown shadow" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                <Heart className="h-4 w-4" /> Sweet
+              </button>
+              <button
+                onClick={() => handleSpicyToggle(true)}
+                className={`flex-1 flex items-center justify-center gap-2 rounded-xl py-2 text-sm font-semibold transition ${isSpicy ? "bg-gradient-to-r from-red-700 to-red-600 text-amber-300 shadow" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                <Flame className="h-4 w-4" /> Spicy
+              </button>
+            </div>
+            <p className={`text-center text-[10px] mt-1.5 ${isSpicy ? "text-amber-200/70" : "text-muted-foreground"}`}>
+              {isSpicy
+                ? "Bolder connections. Flirty energy. Diamond exclusive. 🔥"
+                : "Meaningful romance for Ghanaians 40+. Real connections. 💛"}
+            </p>
           </div>
 
-          {/* Welcome to the spicy side banner */}
+          {/* Welcome to the spicy side banner — fixed overlay */}
           {showSpicyWelcome && (
-            <div
-              className="absolute left-0 right-0 z-50 mt-2 animate-in fade-in slide-in-from-top-2 duration-500"
-              style={{ animation: "fadeInDown 0.5s ease" }}
-            >
-              <div className="rounded-2xl border border-amber-400/40 p-4 text-center shadow-xl"
-                style={{ background: "linear-gradient(135deg, #6B0000, #8B0000)" }}>
-                <div className="text-2xl mb-1">🔥</div>
-                <p className="font-bold text-amber-300 text-base">Welcome to the Spicy Side</p>
-                <p className="text-amber-100/80 text-xs mt-1">Bolder energy. Adults 40+ only. Suggestive — not explicit.</p>
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center pointer-events-none">
+              <div
+                className="mx-6 rounded-3xl border-2 border-amber-400/60 p-8 text-center shadow-2xl"
+                style={{
+                  background: "linear-gradient(135deg, #6B0000, #8B0000, #6B0000)",
+                  animation: "fadeInScale 0.4s ease"
+                }}
+              >
+                <div className="text-5xl mb-3">🔥</div>
+                <p className="font-bold text-amber-300 text-2xl mb-2">Welcome to the Spicy Side</p>
+                <p className="text-amber-100/80 text-sm">Bolder energy. Adults 40+ only.</p>
+                <p className="text-amber-100/60 text-xs mt-1">Suggestive — not explicit.</p>
               </div>
+              <style>{`
+                @keyframes fadeInScale {
+                  from { opacity: 0; transform: scale(0.8); }
+                  to { opacity: 1; transform: scale(1); }
+                }
+              `}</style>
             </div>
           )}
         </div>
