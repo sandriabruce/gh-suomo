@@ -94,7 +94,6 @@
       }
 
       // Detect device and browser
-      var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
       var isInStandaloneMode = ('standalone' in window.navigator) && window.navigator.standalone;
       var isSafari = /safari/i.test(navigator.userAgent) && !/chrome|crios|fxios|android/i.test(navigator.userAgent);
       var isAndroid = /android/i.test(navigator.userAgent);
@@ -103,6 +102,12 @@
       var isInstalled = window.matchMedia('(display-mode: standalone)').matches || isInStandaloneMode;
 
       function showBanner(html) {
+        // Reset dismissed flag after 7 days so banner can show again
+        var dismissedAt = localStorage.getItem('pwa-dismissed-at');
+        if (dismissedAt && (Date.now() - parseInt(dismissedAt)) > 7 * 24 * 60 * 60 * 1000) {
+          localStorage.removeItem('pwa-dismissed');
+          localStorage.removeItem('pwa-dismissed-at');
+        }
         if (localStorage.getItem('pwa-dismissed') || isInstalled) return;
         document.addEventListener('DOMContentLoaded', function() {
           if (document.getElementById('pwa-banner')) return;
