@@ -460,7 +460,7 @@ export default function Discover() {
                 key={c.id}
                 type="button"
                 onClick={() => setOpenId(c.id)}
-                className="group relative aspect-[3/4] overflow-hidden rounded-2xl bg-muted text-left shadow-warm focus:outline-none focus:ring-2 focus:ring-ghana-gold"
+                className={`group relative aspect-[3/4] overflow-hidden rounded-2xl text-left shadow-warm focus:outline-none focus:ring-2 focus:ring-ghana-gold ${isSpicy ? "bg-[#3a0808]" : "bg-[#3b1f0e]"}`}
                 aria-label={`View ${c.first_name ?? "member"}'s profile`}
               >
                 {photo ? (
