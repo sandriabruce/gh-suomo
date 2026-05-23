@@ -18,6 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { setSpicyModeActive, useIsSpicyModeActive } from "@/hooks/useSpicyTheme";
+import { SpicyOnboarding, shouldShowSpicyOnboarding } from "@/components/spicy/SpicyOnboarding";
 import {
   Carousel,
   CarouselContent,
@@ -324,18 +325,22 @@ export default function Discover() {
 
   const isSpicy = useIsSpicyModeActive();
   const [showSpicyWelcome, setShowSpicyWelcome] = useState(false);
+  const [showSpicyOnboarding, setShowSpicyOnboarding] = useState(false);
 
   function handleSpicyToggle(active: boolean) {
     if (active && !isSpicy) {
-      // Show welcome banner BEFORE applying theme so state isn't wiped by re-render
-      setShowSpicyWelcome(true);
-      setTimeout(() => {
-        setSpicyModeActive(true);
-      }, 100);
-      setTimeout(() => setShowSpicyWelcome(false), 4500);
+      setSpicyModeActive(true);
+      // Show onboarding first time, welcome banner subsequent times
+      if (shouldShowSpicyOnboarding()) {
+        setShowSpicyOnboarding(true);
+      } else {
+        setShowSpicyWelcome(true);
+        setTimeout(() => setShowSpicyWelcome(false), 4500);
+      }
     } else {
       setSpicyModeActive(active);
       setShowSpicyWelcome(false);
+      setShowSpicyOnboarding(false);
     }
   }
 
@@ -766,6 +771,18 @@ export default function Discover() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Spicy onboarding — fires first time a Diamond user enables spicy */}
+      {showSpicyOnboarding && user && (
+        <SpicyOnboarding
+          userId={user.id}
+          onComplete={() => {
+            setShowSpicyOnboarding(false);
+            setShowSpicyWelcome(true);
+            setTimeout(() => setShowSpicyWelcome(false), 4000);
+          }}
+        />
+      )}
     </div>
   );
 }
