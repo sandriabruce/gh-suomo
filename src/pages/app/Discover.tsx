@@ -57,6 +57,9 @@ type Candidate = {
   prompts: { q: string; a: string }[];
   ethnicity: string | null;
   verified: boolean;
+  spicy_bio: string | null;
+  spicy_photos: string[];
+  spicy_prompts: { q: string; a: string }[];
 };
 
 const PAGE_SIZE = 20;
@@ -78,6 +81,14 @@ function mapRow(row: Record<string, unknown>): Candidate {
       : [],
     ethnicity: (row.ethnicity as string | null) ?? null,
     verified: !!row.verified,
+    spicy_bio: (row.spicy_bio as string | null) ?? null,
+    spicy_photos: Array.isArray(row.spicy_photos) ? (row.spicy_photos as string[]) : [],
+    spicy_prompts: Array.isArray(row.spicy_prompts)
+      ? ((row.spicy_prompts as unknown[]).filter(
+          (p): p is { q: string; a: string } =>
+            !!p && typeof p === "object" && "q" in p && "a" in p,
+        ))
+      : [],
   };
 }
 
@@ -166,7 +177,7 @@ export default function Discover() {
       const to = from + PAGE_SIZE - 1;
       const { data, error } = await seedClient
         .from("profiles")
-        .select("id, first_name, age, location, bio, photos, verified")
+        .select("id, first_name, age, location, bio, photos, verified, interests, prompts, ethnicity, spicy_bio, spicy_photos, spicy_prompts")
         .eq("is_seed", true)
         .in("gender", targetGenders)
         .order("id", { ascending: true })
@@ -500,18 +511,24 @@ export default function Discover() {
       <InstallBanner />
 
       <Sheet open={!!openPerson} onOpenChange={(o) => !o && setOpenId(null)}>
-        <SheetContent side="bottom" className="flex h-[92dvh] max-h-[92dvh] flex-col overflow-hidden rounded-t-3xl p-0" style={{ background: "#ffffff", color: "#1a1a1a" }}>
-          {openPerson && (
+        <SheetContent side="bottom" className="flex h-[92dvh] max-h-[92dvh] flex-col overflow-hidden rounded-t-3xl p-0 bg-card text-card-foreground">
+          {openPerson && (() => {
+            const activePhotos = (isSpicy && openPerson.spicy_photos.length > 0)
+              ? openPerson.spicy_photos : openPerson.photos;
+            const activeBio = (isSpicy && openPerson.spicy_bio) ? openPerson.spicy_bio : openPerson.bio;
+            const activePrompts = (isSpicy && openPerson.spicy_prompts.length > 0)
+              ? openPerson.spicy_prompts : openPerson.prompts;
+            return (
             <>
-              {openPerson.photos.length > 0 && (
+              {activePhotos.length > 0 && (
                 <div className="relative h-[clamp(150px,32dvh,300px)] shrink-0 sm:h-[clamp(180px,34dvh,340px)]">
                   <Carousel
                     setApi={setGalleryApi}
-                    opts={{ align: "start", loop: openPerson.photos.length > 1 }}
+                    opts={{ align: "start", loop: activePhotos.length > 1 }}
                     className="h-full w-full [&>div]:h-full"
                   >
                     <CarouselContent className="h-full">
-                      {openPerson.photos.map((photo, idx) => (
+                      {activePhotos.map((photo, idx) => (
                         <CarouselItem key={idx} className="h-full basis-full">
                           <div className="h-full w-full">
                             <img
@@ -524,16 +541,16 @@ export default function Discover() {
                         </CarouselItem>
                       ))}
                     </CarouselContent>
-                    {openPerson.photos.length > 1 && (
+                    {activePhotos.length > 1 && (
                       <>
-                        <CarouselPrevious className="left-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-ghana-brown border-0" />
-                        <CarouselNext className="right-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-ghana-brown border-0" />
+                        <CarouselPrevious className="left-2 top-1/2 -translate-y-1/2 z-10 bg-black/40 hover:bg-black/60 text-white border-0" />
+                        <CarouselNext className="right-2 top-1/2 -translate-y-1/2 z-10 bg-black/40 hover:bg-black/60 text-white border-0" />
                       </>
                     )}
                   </Carousel>
-                  {openPerson.photos.length > 1 && (
+                  {activePhotos.length > 1 && (
                     <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
-                      {openPerson.photos.map((_, idx) => (
+                      {activePhotos.map((_, idx) => (
                         <span
                           key={idx}
                           className={`block h-2 w-2 rounded-full transition-colors ${
@@ -542,6 +559,11 @@ export default function Discover() {
                         />
                       ))}
                     </div>
+                  )}
+                  {isSpicy && (
+                    <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-orange-500/90 px-2.5 py-1 text-xs font-semibold text-white">
+                      <Flame className="h-3.5 w-3.5" /> Spicy
+                    </span>
                   )}
                 </div>
               )}
@@ -592,18 +614,18 @@ export default function Discover() {
                 {openPerson.bio && (
                   <div>
                     <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">About</h4>
-                    <p className="mt-1 text-sm text-foreground whitespace-pre-wrap">{openPerson.bio}</p>
+                    <p className="mt-1 text-sm text-foreground whitespace-pre-wrap">{activeBio}</p>
                   </div>
                 )}
 
-                {openPerson.ethnicity && (
+                {!isSpicy && openPerson.ethnicity && (
                   <div>
                     <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Heritage</h4>
                     <p className="mt-1 text-sm">{openPerson.ethnicity}</p>
                   </div>
                 )}
 
-                {openPerson.interests.length > 0 && (
+                {!isSpicy && openPerson.interests.length > 0 && (
                   <div>
                     <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Interests</h4>
                     <div className="mt-2 flex flex-wrap gap-2">
@@ -614,12 +636,14 @@ export default function Discover() {
                   </div>
                 )}
 
-                {openPerson.prompts.length > 0 && (
+                {activePrompts.length > 0 && (
                   <div className="space-y-3">
-                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Prompts</h4>
-                    {openPerson.prompts.map((p, idx) => (
-                      <div key={idx} className="rounded-xl border bg-muted/30 p-3">
-                        <p className="text-xs font-medium text-muted-foreground">{p.q}</p>
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      {isSpicy ? "Spicy prompts" : "Prompts"}
+                    </h4>
+                    {activePrompts.map((p, idx) => (
+                      <div key={idx} className={`rounded-xl border p-3 ${isSpicy ? "border-orange-500/20 bg-orange-500/5" : "bg-muted/30"}`}>
+                        <p className={`text-xs font-medium ${isSpicy ? "text-orange-400" : "text-muted-foreground"}`}>{p.q}</p>
                         <p className="mt-1 text-sm text-foreground whitespace-pre-wrap">{p.a}</p>
                       </div>
                     ))}
@@ -645,7 +669,7 @@ export default function Discover() {
                   </Button>
                 </div>
 
-                <div className="sticky bottom-0 -mx-5 mt-2 flex gap-3 border-t px-5 py-3 backdrop-blur" style={{ background: "rgba(255,255,255,0.95)" }}>
+                <div className="sticky bottom-0 -mx-5 mt-2 flex gap-3 border-t border-border px-5 py-3 backdrop-blur bg-card/95">
                   <Button
                     onClick={() => { handleLikeFromSheet(openPerson.id); setOpenId(null); }}
                     className="flex-1 bg-ghana-gold text-ghana-brown hover:bg-ghana-gold/90"
@@ -671,7 +695,7 @@ export default function Discover() {
                 </div>
               </div>
             </>
-          )}
+          )})()}
         </SheetContent>
       </Sheet>
 

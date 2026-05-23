@@ -15,7 +15,8 @@ import {
   CarouselPrevious,
   type CarouselApi,
 } from "@/components/ui/carousel";
-import { BadgeCheck, MessageCircle, ShieldAlert } from "lucide-react";
+import { BadgeCheck, MessageCircle, ShieldAlert, Flame } from "lucide-react";
+import { useIsSpicyModeActive } from "@/hooks/useSpicyTheme";
 
 type Prompt = { q: string; a: string };
 
@@ -30,6 +31,9 @@ type DetailProfile = {
   photos: string[];
   interests: string[];
   prompts: Prompt[];
+  spicy_bio: string | null;
+  spicy_photos: string[];
+  spicy_prompts: Prompt[];
 };
 
 function normalize(row: Record<string, unknown> | null): DetailProfile | null {
@@ -46,8 +50,14 @@ function normalize(row: Record<string, unknown> | null): DetailProfile | null {
     interests: Array.isArray(row.interests) ? (row.interests as string[]) : [],
     prompts: Array.isArray(row.prompts)
       ? (row.prompts as unknown[]).filter(
-          (p): p is Prompt =>
-            !!p && typeof p === "object" && "q" in p && "a" in p,
+          (p): p is Prompt => !!p && typeof p === "object" && "q" in p && "a" in p,
+        )
+      : [],
+    spicy_bio: (row.spicy_bio as string | null) ?? null,
+    spicy_photos: Array.isArray(row.spicy_photos) ? (row.spicy_photos as string[]) : [],
+    spicy_prompts: Array.isArray(row.spicy_prompts)
+      ? (row.spicy_prompts as unknown[]).filter(
+          (p): p is Prompt => !!p && typeof p === "object" && "q" in p && "a" in p,
         )
       : [],
   };
@@ -68,6 +78,7 @@ export function ProfileDetailSheet({
   const navigate = useNavigate();
   const [api, setApi] = useState<CarouselApi | null>(null);
   const [current, setCurrent] = useState(0);
+  const isSpicy = useIsSpicyModeActive();
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ["profile-detail", userId],
@@ -75,7 +86,7 @@ export function ProfileDetailSheet({
     queryFn: async () => {
       const { data } = await seedClient
         .from("profiles")
-        .select("id, first_name, age, location, bio, ethnicity, verified, photos, interests, prompts")
+        .select("id, first_name, age, location, bio, ethnicity, verified, photos, interests, prompts, spicy_bio, spicy_photos, spicy_prompts")
         .eq("id", userId!)
         .maybeSingle();
       return normalize(data as Record<string, unknown> | null);
@@ -98,24 +109,34 @@ export function ProfileDetailSheet({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="flex h-[92dvh] max-h-[92dvh] flex-col overflow-hidden rounded-t-3xl p-0" style={{ background: "#ffffff", color: "#1a1a1a" }}>
+      <SheetContent side="bottom" className="flex h-[92dvh] max-h-[92dvh] flex-col overflow-hidden rounded-t-3xl p-0 bg-card text-card-foreground">
         {isLoading || !profile ? (
           <div className="p-5 space-y-3">
             <Skeleton className="h-[40vh] w-full rounded-2xl" />
             <Skeleton className="h-6 w-1/2" />
             <Skeleton className="h-4 w-3/4" />
           </div>
-        ) : (
+        ) : (() => {
+          // In spicy mode, use spicy content if available, fall back to regular
+          const activePhotos = (isSpicy && profile.spicy_photos.length > 0)
+            ? profile.spicy_photos
+            : profile.photos;
+          const activeBio = (isSpicy && profile.spicy_bio) ? profile.spicy_bio : profile.bio;
+          const activePrompts = (isSpicy && profile.spicy_prompts.length > 0)
+            ? profile.spicy_prompts
+            : profile.prompts;
+
+          return (
           <>
-            {profile.photos.length > 0 && (
+            {activePhotos.length > 0 && (
               <div className="relative h-[clamp(150px,32dvh,300px)] shrink-0 sm:h-[clamp(180px,34dvh,340px)]">
                 <Carousel
                   setApi={setApi}
-                  opts={{ align: "start", loop: profile.photos.length > 1 }}
+                  opts={{ align: "start", loop: activePhotos.length > 1 }}
                   className="h-full w-full [&>div]:h-full"
                 >
                   <CarouselContent className="h-full">
-                    {profile.photos.map((photo, idx) => (
+                    {activePhotos.map((photo, idx) => (
                       <CarouselItem key={idx} className="h-full basis-full">
                         <div className="h-full w-full">
                           <img
@@ -128,16 +149,16 @@ export function ProfileDetailSheet({
                       </CarouselItem>
                     ))}
                   </CarouselContent>
-                  {profile.photos.length > 1 && (
+                  {activePhotos.length > 1 && (
                     <>
-                      <CarouselPrevious className="left-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-ghana-brown border-0" />
-                      <CarouselNext className="right-2 top-1/2 -translate-y-1/2 z-10 bg-white/80 hover:bg-white text-ghana-brown border-0" />
+                      <CarouselPrevious className="left-2 top-1/2 -translate-y-1/2 z-10 bg-black/40 hover:bg-black/60 text-white border-0" />
+                      <CarouselNext className="right-2 top-1/2 -translate-y-1/2 z-10 bg-black/40 hover:bg-black/60 text-white border-0" />
                     </>
                   )}
                 </Carousel>
-                {profile.photos.length > 1 && (
+                {activePhotos.length > 1 && (
                   <div className="absolute bottom-3 left-1/2 z-10 flex -translate-x-1/2 gap-1.5">
-                    {profile.photos.map((_, idx) => (
+                    {activePhotos.map((_, idx) => (
                       <span
                         key={idx}
                         className={`block h-2 w-2 rounded-full transition-colors ${
@@ -146,6 +167,11 @@ export function ProfileDetailSheet({
                       />
                     ))}
                   </div>
+                )}
+                {isSpicy && (
+                  <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-orange-500/90 px-2.5 py-1 text-xs font-semibold text-white">
+                    <Flame className="h-3.5 w-3.5" /> Spicy
+                  </span>
                 )}
               </div>
             )}
@@ -171,21 +197,21 @@ export function ProfileDetailSheet({
                 )}
               </SheetHeader>
 
-              {profile.bio && (
+              {activeBio && (
                 <div>
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">About</h4>
-                  <p className="mt-1 text-sm text-foreground whitespace-pre-wrap">{profile.bio}</p>
+                  <p className="mt-1 text-sm text-foreground whitespace-pre-wrap">{activeBio}</p>
                 </div>
               )}
 
-              {profile.ethnicity && (
+              {!isSpicy && profile.ethnicity && (
                 <div>
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Heritage</h4>
                   <p className="mt-1 text-sm">{profile.ethnicity}</p>
                 </div>
               )}
 
-              {profile.interests.length > 0 && (
+              {!isSpicy && profile.interests.length > 0 && (
                 <div>
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Interests</h4>
                   <div className="mt-2 flex flex-wrap gap-2">
@@ -196,19 +222,21 @@ export function ProfileDetailSheet({
                 </div>
               )}
 
-              {profile.prompts.length > 0 && (
+              {activePrompts.length > 0 && (
                 <div className="space-y-3">
-                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Prompts</h4>
-                  {profile.prompts.map((p, idx) => (
-                    <div key={idx} className="rounded-xl border bg-muted/30 p-3">
-                      <p className="text-xs font-medium text-muted-foreground">{p.q}</p>
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {isSpicy ? "Spicy prompts" : "Prompts"}
+                  </h4>
+                  {activePrompts.map((p, idx) => (
+                    <div key={idx} className={`rounded-xl border p-3 ${isSpicy ? "border-orange-500/20 bg-orange-500/5" : "bg-muted/30"}`}>
+                      <p className={`text-xs font-medium ${isSpicy ? "text-orange-400" : "text-muted-foreground"}`}>{p.q}</p>
                       <p className="mt-1 text-sm text-foreground whitespace-pre-wrap">{p.a}</p>
                     </div>
                   ))}
                 </div>
               )}
 
-              <div className="sticky bottom-0 -mx-5 mt-2 flex gap-3 border-t px-5 py-3 backdrop-blur" style={{ background: "rgba(255,255,255,0.95)" }}>
+              <div className="sticky bottom-0 -mx-5 mt-2 flex gap-3 border-t border-border px-5 py-3 backdrop-blur bg-card/95">
                 <Button
                   onClick={() => {
                     if (matchId) {
@@ -217,14 +245,15 @@ export function ProfileDetailSheet({
                     }
                   }}
                   disabled={!matchId}
-                  className="flex-1 bg-green-500 text-white hover:bg-green-600"
+                  className={`flex-1 ${isSpicy ? "bg-orange-500 text-white hover:bg-orange-600" : "bg-green-500 text-white hover:bg-green-600"}`}
                 >
                   <MessageCircle className="mr-2 h-4 w-4" /> Message
                 </Button>
               </div>
             </div>
           </>
-        )}
+          );
+        })()}
       </SheetContent>
     </Sheet>
   );
