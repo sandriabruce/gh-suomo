@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { SafetyBanner } from "@/components/safety/SafetyBanner";
@@ -9,7 +9,7 @@ import { seedClient } from "@/integrations/supabase/seedClient";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Lock, ArrowLeft, ImagePlus, Loader2 } from "lucide-react";
+import { Lock, ArrowLeft, ImagePlus, Loader2, Mic, MicOff, Play, Pause, Square } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { markMatchRead, useUnreadMessages } from "@/hooks/useUnreadMessages";
@@ -18,12 +18,11 @@ import { ProfileDetailSheet } from "@/components/profile/ProfileDetailSheet";
 import { useSpicyTheme } from "@/hooks/useSpicyTheme";
 
 const IMAGE_MSG_PREFIX = "[image]";
-function isImageMessage(content: string) {
-  return content.startsWith(IMAGE_MSG_PREFIX);
-}
-function imageUrlFrom(content: string) {
-  return content.slice(IMAGE_MSG_PREFIX.length).trim();
-}
+const VOICE_MSG_PREFIX = "[voice]";
+function isImageMessage(content: string) { return content.startsWith(IMAGE_MSG_PREFIX); }
+function imageUrlFrom(content: string) { return content.slice(IMAGE_MSG_PREFIX.length).trim(); }
+function isVoiceMessage(content: string) { return content.startsWith(VOICE_MSG_PREFIX); }
+function voiceUrlFrom(content: string) { return content.slice(VOICE_MSG_PREFIX.length).trim(); }
 
 const FREE_MESSAGE_LIMIT = 3;
 
@@ -46,6 +45,12 @@ export default function Chat() {
   const [seedTyping, setSeedTyping] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [recordingSecs, setRecordingSecs] = useState(0);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const recordingTimerRef = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const seedReplyTimerRef = useRef<number | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -328,6 +333,63 @@ export default function Chat() {
     }
   }
 
+  async function startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mr = new MediaRecorder(stream, { mimeType: MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : "audio/mp4" });
+      audioChunksRef.current = [];
+      mr.ondataavailable = (e) => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
+      mr.onstop = () => {
+        stream.getTracks().forEach(t => t.stop());
+        const blob = new Blob(audioChunksRef.current, { type: mr.mimeType });
+        setAudioUrl(URL.createObjectURL(blob));
+      };
+      mr.start(100);
+      mediaRecorderRef.current = mr;
+      setRecording(true);
+      setRecordingSecs(0);
+      recordingTimerRef.current = window.setInterval(() => {
+        setRecordingSecs(s => {
+          if (s >= 90) { stopRecording(); return s; } // 90s max
+          return s + 1;
+        });
+      }, 1000);
+    } catch {
+      toast.error("Microphone access denied. Enable it in browser settings.");
+    }
+  }
+
+  function stopRecording() {
+    if (mediaRecorderRef.current?.state !== "inactive") mediaRecorderRef.current?.stop();
+    if (recordingTimerRef.current) { clearInterval(recordingTimerRef.current); recordingTimerRef.current = null; }
+    setRecording(false);
+  }
+
+  function cancelVoice() {
+    stopRecording();
+    setAudioUrl(null);
+    audioChunksRef.current = [];
+  }
+
+  async function sendVoiceNote() {
+    if (!user || !matchId || audioChunksRef.current.length === 0) return;
+    setUploading(true);
+    try {
+      const blob = new Blob(audioChunksRef.current, { type: mediaRecorderRef.current?.mimeType ?? "audio/webm" });
+      const ext = blob.type.includes("mp4") ? "m4a" : "webm";
+      const path = `${user.id}/voice-notes/${matchId}/${Date.now()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("profile-photos").upload(path, blob, { contentType: blob.type });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("profile-photos").getPublicUrl(path);
+      await sendContent(`${VOICE_MSG_PREFIX}${pub.publicUrl}`);
+      setAudioUrl(null);
+      audioChunksRef.current = [];
+    } catch (e) {
+      toast.error("Voice note not sent.");
+    } finally {
+      setUploading(false);
+    }
+  }
   async function triggerSeedReply(content: string) {
     if (!user || !matchId) return;
     // If the other party in this match is a seed profile, trigger an AI reply.
@@ -490,6 +552,10 @@ export default function Chat() {
                       className="block max-h-72 w-full object-cover"
                     />
                   </a>
+                ) : isVoiceMessage(m.content) ? (
+                  <div className={`max-w-[80%] rounded-2xl px-3 py-2 ${mine ? "bg-ghana-gold" : "bg-muted"}`}>
+                    <audio src={voiceUrlFrom(m.content)} controls className="h-8 max-w-full" />
+                  </div>
                 ) : (
                   <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${mine ? "bg-ghana-gold text-ghana-brown" : "bg-muted text-foreground"}`}>
                     {m.content}
@@ -547,45 +613,80 @@ export default function Chat() {
             </Link>
           </Button>
         </div>
-      ) : (
-        <form
-          className="flex gap-2"
-          onSubmit={(e) => { e.preventDefault(); send(); }}
-        >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) uploadImage(f);
-              e.target.value = "";
-            }}
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            disabled={uploading || sending}
-            onClick={() => fileInputRef.current?.click()}
-            aria-label="Send a photo"
-            className="shrink-0"
+        ) : (
+        <>
+          {/* Voice note preview */}
+          {audioUrl && !recording && (
+            <div className="flex items-center gap-2 rounded-2xl border bg-muted/40 px-3 py-2">
+              <audio src={audioUrl} controls className="flex-1 h-8 min-w-0" />
+              <Button size="icon" variant="ghost" onClick={cancelVoice} className="shrink-0 text-destructive" aria-label="Cancel"><MicOff className="h-4 w-4" /></Button>
+              <Button size="sm" onClick={() => { sendVoiceNote(); triggerSeedReply("[voice note]"); }} disabled={uploading} className="shrink-0 bg-ghana-gold text-ghana-brown">
+                {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send"}
+              </Button>
+            </div>
+          )}
+          {/* Recording in progress */}
+          {recording && (
+            <div className="flex items-center gap-3 rounded-2xl border border-red-300 bg-red-50 px-4 py-3">
+              <span className="flex h-3 w-3 rounded-full bg-red-500 animate-pulse" />
+              <span className="flex-1 text-sm text-red-700 font-medium">{Math.floor(recordingSecs / 60)}:{String(recordingSecs % 60).padStart(2, "0")}</span>
+              <Button size="icon" variant="ghost" onClick={cancelVoice} className="text-muted-foreground" aria-label="Cancel"><MicOff className="h-4 w-4" /></Button>
+              <Button size="icon" onClick={stopRecording} className="bg-red-500 text-white hover:bg-red-600" aria-label="Stop"><Square className="h-4 w-4 fill-current" /></Button>
+            </div>
+          )}
+          {/* Main input row */}
+          {!recording && !audioUrl && (
+          <form
+            className="flex gap-2"
+            onSubmit={(e) => { e.preventDefault(); send(); }}
           >
-            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
-          </Button>
-          <Input
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder="Write a message…"
-            disabled={sending}
-            maxLength={500}
-          />
-          <Button type="submit" disabled={sending || !draft.trim()} className="bg-ghana-gold text-ghana-brown hover:bg-ghana-gold/90">
-            Send
-          </Button>
-        </form>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0];
+                if (f) uploadImage(f);
+                e.target.value = "";
+              }}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              disabled={uploading || sending}
+              onClick={() => fileInputRef.current?.click()}
+              aria-label="Send a photo"
+              className="shrink-0"
+            >
+              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImagePlus className="h-4 w-4" />}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              disabled={uploading || sending}
+              onClick={startRecording}
+              aria-label="Record voice note"
+              className="shrink-0"
+            >
+              <Mic className="h-4 w-4" />
+            </Button>
+            <Input
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              placeholder="Write a message…"
+              disabled={sending}
+              maxLength={500}
+            />
+            <Button type="submit" disabled={sending || !draft.trim()} className="bg-ghana-gold text-ghana-brown hover:bg-ghana-gold/90">
+              Send
+            </Button>
+          </form>
+          )}
+        </>
       )}
     </div>
   );

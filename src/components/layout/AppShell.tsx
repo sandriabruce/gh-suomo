@@ -1,5 +1,5 @@
 import { Navigate, NavLink, Outlet, Link, useLocation, useNavigate } from "react-router-dom";
-import { Compass, Heart, MessageCircle, ShieldCheck, User, ShieldAlert, Crown, Menu, LogOut, Settings, Flame } from "lucide-react";
+import { Compass, Heart, MessageCircle, ShieldCheck, User, ShieldAlert, Crown, Menu, LogOut, Settings, Flame, Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/brand/Logo";
@@ -23,10 +23,8 @@ const tabs = [
   { to: "/app/discover", label: "Discover", icon: Compass },
   { to: "/app/matches", label: "Matches", icon: Heart },
   { to: "/app/chat", label: "Chat", icon: MessageCircle },
-  { to: "/app/spicy", label: "Spicy", icon: Flame },
-  { to: "/app/verify", label: "Verify", icon: ShieldCheck },
+  { to: "/app/likes", label: "Likes", icon: Sparkles },
   { to: "/app/profile", label: "Profile", icon: User },
-  { to: "/app/safety", label: "Safety", icon: ShieldAlert },
 ];
 
 export function AppShell() {
@@ -81,6 +79,12 @@ export function AppShell() {
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate("/app/profile/edit")}>
               <Settings className="mr-2 h-4 w-4" /> Edit profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/app/verify")}>
+              <ShieldCheck className="mr-2 h-4 w-4" /> Upgrade / Verify
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/app/safety")}>
+              <ShieldAlert className="mr-2 h-4 w-4" /> Safety
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem

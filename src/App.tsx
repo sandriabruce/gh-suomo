@@ -27,6 +27,7 @@ import PaymentsAdmin from "./pages/app/PaymentsAdmin";
 import PaymentEventsAdmin from "./pages/app/PaymentEventsAdmin";
 import ChatDiagnostics from "./pages/app/ChatDiagnostics";
 import SeedPhotosAdmin from "./pages/app/SeedPhotosAdmin";
+import Likes from "./pages/app/Likes";
 import SeedRepliesAdmin from "./pages/app/SeedRepliesAdmin";
 import NotFound from "./pages/NotFound.tsx";
 
@@ -73,6 +74,7 @@ const App = () => {
               <Route path="spicy" element={guard(<Spicy />, "Spicy Mode")} />
               <Route path="profile" element={guard(<Profile />, "Profile")} />
               <Route path="profile/edit" element={guard(<EditProfile />, "Edit profile")} />
+              <Route path="likes" element={guard(<Likes />, "Likes")} />
               <Route path="safety" element={guard(<Safety />, "Safety")} />
               <Route path="admin" element={<ProtectedRoute adminOnly>{guard(<Admin />, "Admin")}</ProtectedRoute>} />
               <Route path="admin/payments" element={<ProtectedRoute adminOnly>{guard(<PaymentsAdmin />, "Payments")}</ProtectedRoute>} />

@@ -107,12 +107,37 @@ export default function Discover() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [openingChat, setOpeningChat] = useState(false);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
-  const [blockedIds, setBlockedIds] = useState<Set<string>>(() => {
-    try {
-      const raw = localStorage.getItem("blocked-user-ids");
-      return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
-    } catch { return new Set(); }
-  });
+  const [likedPrompts, setLikedPrompts] = useState<Set<string>>(new Set());
+
+  async function likePrompt(profileId: string, q: string, a: string) {
+    if (!user) return;
+    const key = `${profileId}:${q}`;
+    if (likedPrompts.has(key)) return;
+    setLikedPrompts(prev => new Set(prev).add(key));
+    await supabase.from("profile_likes").upsert({ liker_id: user.id, liked_id: profileId, prompt_q: q, prompt_a: a }, { onConflict: "liker_id,liked_id" });
+  }
+
+  async function likePhoto(profileId: string, photoUrl: string) {
+    if (!user) return;
+    const key = `${profileId}:photo`;
+    if (likedPrompts.has(key)) return;
+    setLikedPrompts(prev => new Set(prev).add(key));
+    await supabase.from("profile_likes").upsert({ liker_id: user.id, liked_id: profileId, photo_url: photoUrl }, { onConflict: "liker_id,liked_id" });
+  }
+  const [blockedIds, setBlockedIds] = useState<Set<string>>(new Set());
+
+  // Load server-side blocks on mount
+  useEffect(() => {
+    if (!user) return;
+    // Merge localStorage (legacy) + server blocks
+    const local = (() => {
+      try { const r = localStorage.getItem("blocked-user-ids"); return r ? (JSON.parse(r) as string[]) : []; } catch { return []; }
+    })();
+    supabase.from("blocks").select("blocked_id").eq("blocker_id", user.id).then(({ data }) => {
+      const server = (data ?? []).map((r: { blocked_id: string }) => r.blocked_id);
+      setBlockedIds(new Set([...local, ...server]));
+    });
+  }, [user]);
   const [reportFor, setReportFor] = useState<string | null>(null);
   const [reportReason, setReportReason] = useState<string>("");
   const [reportDetail, setReportDetail] = useState("");
@@ -293,6 +318,13 @@ export default function Discover() {
   function persistBlocked(next: Set<string>) {
     setBlockedIds(next);
     try { localStorage.setItem("blocked-user-ids", JSON.stringify(Array.from(next))); } catch { /* ignore */ }
+    // Write to server
+    if (user) {
+      const newId = Array.from(next).find(id => !blockedIds.has(id));
+      if (newId) {
+        supabase.from("blocks").insert({ blocker_id: user.id, blocked_id: newId }).then(() => {});
+      }
+    }
   }
 
   async function submitReport() {
@@ -646,12 +678,23 @@ export default function Discover() {
                     <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                       {isSpicy ? "Spicy prompts" : "Prompts"}
                     </h4>
-                    {activePrompts.map((p, idx) => (
-                      <div key={idx} className={`rounded-xl border p-3 ${isSpicy ? "border-orange-500/20 bg-orange-500/5" : "bg-muted/30"}`}>
-                        <p className={`text-xs font-medium ${isSpicy ? "text-orange-400" : "text-muted-foreground"}`}>{p.q}</p>
-                        <p className="mt-1 text-sm text-foreground whitespace-pre-wrap">{p.a}</p>
-                      </div>
-                    ))}
+                    {activePrompts.map((p, idx) => {
+                      const pKey = `${openPerson.id}:${p.q}`;
+                      const liked = likedPrompts.has(pKey);
+                      return (
+                        <div key={idx} className={`rounded-xl border p-3 relative ${isSpicy ? "border-orange-500/20 bg-orange-500/5" : "bg-muted/30"}`}>
+                          <p className={`text-xs font-medium ${isSpicy ? "text-orange-400" : "text-muted-foreground"}`}>{p.q}</p>
+                          <p className="mt-1 text-sm text-foreground whitespace-pre-wrap pr-8">{p.a}</p>
+                          <button
+                            onClick={() => likePrompt(openPerson.id, p.q, p.a)}
+                            className={`absolute bottom-2 right-2 rounded-full p-1.5 transition ${liked ? "text-ghana-red" : "text-muted-foreground hover:text-ghana-red"}`}
+                            aria-label="Like this prompt"
+                          >
+                            <Heart className={`h-4 w-4 ${liked ? "fill-current" : ""}`} />
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
 
