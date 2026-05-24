@@ -124,6 +124,7 @@ function MagicGate() {
         <Sparkles className="h-8 w-8 text-white" />
       </div>
       <div>
+        <p className="text-xs uppercase tracking-widest text-amber-600 font-semibold">Scorching ✨</p>
         <h1 className="font-display text-2xl font-bold text-ghana-brown">Mannye's Magic</h1>
         <p className="mt-1 text-sm font-medium text-ghana-brown/70 italic">Tell Mannye who you're looking for.</p>
         <p className="mt-1 text-xs text-muted-foreground">Your answers become who you seek. 100% private.</p>
@@ -131,12 +132,12 @@ function MagicGate() {
       <div className="w-full max-w-xs rounded-2xl border-2 border-amber-400/40 bg-amber-50/60 p-5">
         <div className="flex items-center gap-2 text-amber-800">
           <Lock className="h-4 w-4 shrink-0" />
-          <p className="text-sm font-medium">Mannye's Magic is a premium tier above Diamond</p>
+          <p className="text-sm font-medium">Scorching is above Diamond — the highest tier</p>
         </div>
         <p className="mt-2 text-xs text-amber-700">GHS 500/month · Fully private · Explicit conversations enabled</p>
       </div>
       <Button asChild className="bg-ghana-gold text-ghana-brown hover:bg-ghana-gold/90">
-        <Link to="/app/verify">Upgrade to Mannye's Magic</Link>
+        <Link to="/app/verify">Upgrade to Scorching</Link>
       </Button>
     </div>
   );
@@ -321,7 +322,7 @@ export default function ManneysMagic() {
     return (
       <div className="space-y-5">
         <div>
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">Mannye's Magic · Step 1 of 6</p>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Scorching · Step 1 of 6</p>
           <h1 className="mt-1 font-display text-xl font-bold text-ghana-brown">
             Imagine {pronouns.them} leaning in close.
           </h1>
@@ -345,7 +346,7 @@ export default function ManneysMagic() {
     return (
       <div className="space-y-5">
         <div>
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">Mannye's Magic · Step 2 of 6</p>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Scorching · Step 2 of 6</p>
           <h1 className="mt-1 font-display text-xl font-bold text-ghana-brown">Now — who is {pronouns.they}?</h1>
         </div>
         <div className="space-y-2">
@@ -369,7 +370,7 @@ export default function ManneysMagic() {
     return (
       <div className="space-y-5">
         <div>
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">Mannye's Magic · Step 3 of 6</p>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Scorching · Step 3 of 6</p>
           <h1 className="mt-1 font-display text-xl font-bold text-ghana-brown">Which of these makes your pulse quicken?</h1>
         </div>
         <div className="space-y-2">
@@ -393,7 +394,7 @@ export default function ManneysMagic() {
     return (
       <div className="space-y-5">
         <div>
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">Mannye's Magic · Step 4 of 6</p>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Scorching · Step 4 of 6</p>
           <h1 className="mt-1 font-display text-xl font-bold text-ghana-brown">
             What's {pronouns.theirPos} complexion?
           </h1>
@@ -419,7 +420,7 @@ export default function ManneysMagic() {
     return (
       <div className="space-y-5">
         <div>
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">Mannye's Magic · Step 5 of 6</p>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Scorching · Step 5 of 6</p>
           <h1 className="mt-1 font-display text-xl font-bold text-ghana-brown">
             {pronouns.They === "They" ? "Their" : pronouns.They === "She" ? "Her" : "His"} build?
           </h1>
@@ -445,7 +446,7 @@ export default function ManneysMagic() {
     return (
       <div className="space-y-5">
         <div>
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">Mannye's Magic · Step 6 of 6</p>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Scorching · Step 6 of 6</p>
           <h1 className="mt-1 font-display text-xl font-bold text-ghana-brown">
             {pronouns.They === "They" ? "Their" : pronouns.They === "She" ? "Her" : "His"} hair?
           </h1>
@@ -575,7 +576,7 @@ export default function ManneysMagic() {
         </Button>
       </form>
       <p className="text-center text-[10px] text-muted-foreground">
-        Mannye's Magic · 100% private · Your dream partner lives only in your account
+        Scorching by Mannye's Magic · 100% private · Your dream partner lives only in your account
       </p>
     </div>
   );

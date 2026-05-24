@@ -34,7 +34,7 @@ export const PLAN_LABEL: Record<Plan, string> = {
   verified: "Verified",
   premium: "Premium",
   diamond: "Diamond",
-  magic: "Mannye's Magic",
+  magic: "Scorching",
 };
 
 export interface TrialState {
