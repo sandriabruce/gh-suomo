@@ -1,6 +1,15 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { applySpicyRuntimeTheme, SPICY_MODE_STORAGE_KEY, SPICY_MODE_STORAGE_KEY_CANONICAL } from "@/lib/spicyRuntimeTheme";
+
+function clearSpicyMode() {
+  try {
+    localStorage.removeItem(SPICY_MODE_STORAGE_KEY);
+    localStorage.removeItem(SPICY_MODE_STORAGE_KEY_CANONICAL);
+  } catch { /* ignore */ }
+  applySpicyRuntimeTheme(false);
+}
 
 interface AuthCtx {
   user: User | null;
@@ -31,6 +40,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           });
         }, 0);
       } else {
+        // Session ended — always clear spicy mode so landing page shows brown
+        clearSpicyMode();
         setIsAdmin(false);
         setRoleLoaded(true);
       }
@@ -71,7 +82,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     loading,
     isAdmin,
     roleLoaded,
-    signOut: async () => { await supabase.auth.signOut(); },
+    signOut: async () => { clearSpicyMode(); await supabase.auth.signOut(); },
   };
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

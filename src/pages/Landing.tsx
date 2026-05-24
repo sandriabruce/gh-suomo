@@ -1,10 +1,20 @@
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/brand/Logo";
 import { CoupleCard, SAMPLE_COUPLES } from "@/components/brand/CoupleCard";
 import { InstallBanner } from "@/components/pwa/InstallBanner";
+import { applySpicyRuntimeTheme, SPICY_MODE_STORAGE_KEY, SPICY_MODE_STORAGE_KEY_CANONICAL } from "@/lib/spicyRuntimeTheme";
 
 export default function Landing() {
+  // Always show brown on the landing page — never crimson
+  useEffect(() => {
+    try {
+      localStorage.removeItem(SPICY_MODE_STORAGE_KEY);
+      localStorage.removeItem(SPICY_MODE_STORAGE_KEY_CANONICAL);
+    } catch { /* ignore */ }
+    applySpicyRuntimeTheme(false);
+  }, []);
   return (
     <div className="min-h-screen bg-gradient-warm">
       <header className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
