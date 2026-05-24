@@ -19,12 +19,48 @@ import { useSpicyTheme } from "@/hooks/useSpicyTheme";
 
 const IMAGE_MSG_PREFIX = "[image]";
 const VOICE_MSG_PREFIX = "[voice]";
+const VOICE_PATH_PREFIX = "[voicepath]"; // new: stores storage path, renders via signed URL
 function isImageMessage(content: string) { return content.startsWith(IMAGE_MSG_PREFIX); }
 function imageUrlFrom(content: string) { return content.slice(IMAGE_MSG_PREFIX.length).trim(); }
-function isVoiceMessage(content: string) { return content.startsWith(VOICE_MSG_PREFIX); }
-function voiceUrlFrom(content: string) { return content.slice(VOICE_MSG_PREFIX.length).trim(); }
+function isVoiceMessage(content: string) {
+  return content.startsWith(VOICE_MSG_PREFIX) || content.startsWith(VOICE_PATH_PREFIX);
+}
+function voicePathFrom(content: string) {
+  if (content.startsWith(VOICE_PATH_PREFIX)) return content.slice(VOICE_PATH_PREFIX.length).trim();
+  return null; // legacy public URL message
+}
+function voiceUrlFrom(content: string) {
+  if (content.startsWith(VOICE_MSG_PREFIX)) return content.slice(VOICE_MSG_PREFIX.length).trim();
+  return null;
+}
 
-const FREE_MESSAGE_LIMIT = 3;
+// VoicePlayer — handles both legacy public URLs ([voice]url) and new signed paths ([voicepath]path)
+function VoicePlayer({ content, mine }: { content: string; mine: boolean }) {
+  const [src, setSrc] = useState<string | null>(null);
+
+  useEffect(() => {
+    const path = voicePathFrom(content);
+    if (path) {
+      // Generate a signed URL (1 hour expiry) for private playback
+      supabase.storage.from("profile-photos")
+        .createSignedUrl(path, 3600)
+        .then(({ data }) => { if (data?.signedUrl) setSrc(data.signedUrl); })
+        .catch(() => {});
+    } else {
+      // Legacy: already a public URL
+      setSrc(voiceUrlFrom(content));
+    }
+  }, [content]);
+
+  return (
+    <div className={`max-w-[80%] rounded-2xl px-3 py-2 ${mine ? "bg-ghana-gold" : "bg-muted"}`}>
+      {src
+        ? <audio src={src} controls className="h-8 max-w-full" />
+        : <span className="text-xs text-muted-foreground">Loading voice note…</span>
+      }
+    </div>
+  );
+}
 
 type ChatMessage = {
   id: string;
@@ -380,8 +416,8 @@ export default function Chat() {
       const path = `${user.id}/voice-notes/${matchId}/${Date.now()}.${ext}`;
       const { error: upErr } = await supabase.storage.from("profile-photos").upload(path, blob, { contentType: blob.type });
       if (upErr) throw upErr;
-      const { data: pub } = supabase.storage.from("profile-photos").getPublicUrl(path);
-      await sendContent(`${VOICE_MSG_PREFIX}${pub.publicUrl}`);
+      // Store path not public URL — playback uses a signed URL generated at render time
+      await sendContent(`${VOICE_PATH_PREFIX}${path}`);
       setAudioUrl(null);
       audioChunksRef.current = [];
     } catch (e) {
@@ -553,9 +589,7 @@ export default function Chat() {
                     />
                   </a>
                 ) : isVoiceMessage(m.content) ? (
-                  <div className={`max-w-[80%] rounded-2xl px-3 py-2 ${mine ? "bg-ghana-gold" : "bg-muted"}`}>
-                    <audio src={voiceUrlFrom(m.content)} controls className="h-8 max-w-full" />
-                  </div>
+                  <VoicePlayer content={m.content} mine={mine} />
                 ) : (
                   <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${mine ? "bg-ghana-gold text-ghana-brown" : "bg-muted text-foreground"}`}>
                     {m.content}
