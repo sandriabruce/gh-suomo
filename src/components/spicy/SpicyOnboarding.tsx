@@ -88,7 +88,7 @@ export function SpicyOnboarding({ userId, onComplete }: Props) {
               <div>
                 <h2 className="text-2xl font-bold" style={{ color: "#c9a84c" }}>Welcome to the Spicy Side</h2>
                 <p className="mt-2 text-sm leading-relaxed" style={{ color: "rgba(255,255,255,0.65)" }}>
-                  This is a bolder, more sensual corner of GH SUƆMƆ — for Diamond members who know exactly what they want. Suggestive. Not explicit. Adults 40+ only.
+                  This is a bolder, more sensual corner of GH SUƆMƆ — for Diamond members who know exactly what they want. Suggestive. Not explicit. Adults 35+ only.
                 </p>
               </div>
               <div className="rounded-2xl p-4 text-left space-y-2.5 text-sm" style={{ border: "1px solid rgba(201,168,76,0.2)", background: "rgba(201,168,76,0.04)" }}>

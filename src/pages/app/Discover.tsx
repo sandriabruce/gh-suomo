@@ -206,6 +206,7 @@ export default function Discover() {
         .select("id, first_name, age, location, bio, photos, verified, interests, prompts, ethnicity, spicy_bio, spicy_photos, spicy_prompts")
         .eq("is_seed", true)
         .in("gender", targetGenders)
+        .neq("banned", true)
         .order("id", { ascending: true })
         .range(from, to);
       if (error) throw error;
@@ -430,7 +431,7 @@ export default function Discover() {
             <p className={`text-center text-[10px] mt-1.5 ${isSpicy ? "text-amber-200/70" : "text-muted-foreground"}`}>
               {isSpicy
                 ? "Bolder connections. Flirty energy. Diamond exclusive. 🔥"
-                : "Meaningful romance for Ghanaians 40+. Real connections. 💛"}
+                : "Meaningful romance for Ghanaians 35+. Real connections. 💛"}
             </p>
           </div>
 
@@ -446,7 +447,7 @@ export default function Discover() {
               >
                 <div className="text-5xl mb-3">🔥</div>
                 <p className="font-bold text-amber-300 text-2xl mb-2">Welcome to the Spicy Side</p>
-                <p className="text-amber-100/80 text-sm">Bolder energy. Adults 40+ only.</p>
+                <p className="text-amber-100/80 text-sm">Bolder energy. Adults 35+ only.</p>
                 <p className="text-amber-100/60 text-xs mt-1">Suggestive — not explicit.</p>
               </div>
               <style>{`

@@ -24,7 +24,7 @@ export default function Landing() {
       <section className="mx-auto max-w-3xl px-4 py-12 text-center">
         <Logo size="xl" showWordmark className="justify-center" />
         <p className="mx-auto mt-6 max-w-xl text-lg text-foreground/80">
-          Dating for the 40+ Ghanaian. At home and across the diaspora — built for real love, with real safety.
+          Dating for the 35+ Ghanaian. At home and across the diaspora — built for real love, with real safety.
         </p>
         <div className="mt-8 flex justify-center gap-3">
           <Link to="/auth"><Button size="lg" className="bg-ghana-gold text-ghana-brown hover:bg-ghana-gold/90">Start free 7-day trial</Button></Link>

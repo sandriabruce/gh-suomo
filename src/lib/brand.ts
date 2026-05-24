@@ -80,7 +80,7 @@ export const PROMPTS_CATALOG: ModeTagged[] = [
   { label: "The version of me nobody sees in public…",           modes: ["spark"] },
   { label: "What I find genuinely irresistible in a person…",    modes: ["spark"] },
   { label: "I lose all self-control when…",                      modes: ["spark"] },
-  { label: "The best thing about being 40+ is…",                 modes: ["spark"] },
+  { label: "The best thing about being 35+ is…",                 modes: ["spark"] },
   { label: "What I bring to the table that surprises people…",   modes: ["spark"] },
   { label: "My love language in private is…",                    modes: ["spark"] },
   { label: "What I need that I haven't been asking for…",        modes: ["spark"] },

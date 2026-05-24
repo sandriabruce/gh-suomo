@@ -120,7 +120,7 @@ export default function Spicy() {
           <Crown className="mx-auto h-10 w-10 text-ghana-gold" />
           <h1 className="mt-3 font-display text-3xl font-bold text-ghana-gold">Spicy Mode is Diamond-only</h1>
           <p className="mx-auto mt-3 max-w-md text-sm text-white/80">
-            A bolder, flirtier corner of GH SUƆMƆ for adults 40+. Suggestive — not explicit. Available exclusively to Diamond subscribers.
+            A bolder, flirtier corner of GH SUƆMƆ for adults 35+. Suggestive — not explicit. Available exclusively to Diamond subscribers.
           </p>
           <Button
             onClick={() => navigate("/app/verify")}
@@ -143,7 +143,7 @@ export default function Spicy() {
           <Flame className="h-10 w-10 text-orange-400" />
           <h2 className="mt-3 font-display text-2xl font-bold text-ghana-gold">You are entering Spicy Mode</h2>
           <p className="mt-3 text-sm text-white/80">
-            This section contains suggestive content intended for adults 40+. By continuing you confirm
+            This section contains suggestive content intended for adults 35+. By continuing you confirm
             you are 40 or older and consent to this content.
           </p>
           <Button
@@ -154,7 +154,7 @@ export default function Spicy() {
               setAgeConfirmed(true);
             }}
           >
-            I am 40+ — enter Spicy Mode
+            I am 35+ — enter Spicy Mode
           </Button>
         </Card>
       </div>
@@ -400,7 +400,7 @@ function SpicyHeader() {
       </span>
       <div>
         <h1 className="font-display text-xl font-bold text-ghana-gold">Spicy Mode</h1>
-        <p className="text-[11px] text-muted-foreground">Bolder energy. Adults 40+ only.</p>
+        <p className="text-[11px] text-muted-foreground">Bolder energy. Adults 35+ only.</p>
       </div>
     </div>
   );
