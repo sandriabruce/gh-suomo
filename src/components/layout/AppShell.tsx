@@ -83,6 +83,15 @@ export function AppShell() {
             <DropdownMenuItem onClick={() => navigate("/app/verify")}>
               <ShieldCheck className="mr-2 h-4 w-4" /> Upgrade / Verify
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/app/magic")}>
+              <Sparkles className="mr-2 h-4 w-4 text-amber-500" />
+              <span className="bg-gradient-to-r from-amber-600 to-amber-400 bg-clip-text text-transparent font-medium">
+                Mannye's Magic
+              </span>
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate("/app/spicy")}>
+              <Flame className="mr-2 h-4 w-4" /> Spicy mode
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => navigate("/app/safety")}>
               <ShieldAlert className="mr-2 h-4 w-4" /> Safety
             </DropdownMenuItem>

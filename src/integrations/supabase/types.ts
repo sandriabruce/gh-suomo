@@ -588,7 +588,7 @@ export type Database = {
       app_mode: "romance" | "spark"
       app_role: "admin" | "user"
       match_status: "pending" | "active" | "closed"
-      plan_tier: "explorer" | "verified" | "premium" | "diamond"
+      plan_tier: "explorer" | "verified" | "premium" | "diamond" | "magic"
       report_status: "open" | "reviewed" | "dismissed"
       subscription_status: "trial" | "active" | "expired" | "cancelled"
       verification_status: "unverified" | "pending" | "approved" | "rejected"
@@ -722,7 +722,7 @@ export const Constants = {
       app_mode: ["romance", "spark"],
       app_role: ["admin", "user"],
       match_status: ["pending", "active", "closed"],
-      plan_tier: ["explorer", "verified", "premium", "diamond"],
+      plan_tier: ["explorer", "verified", "premium", "diamond", "magic"],
       report_status: ["open", "reviewed", "dismissed"],
       subscription_status: ["trial", "active", "expired", "cancelled"],
       verification_status: ["unverified", "pending", "approved", "rejected"],

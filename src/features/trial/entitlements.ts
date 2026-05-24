@@ -15,13 +15,18 @@ export interface PlanLimits {
   concierge: boolean;
   /** Profile is boosted in the deck */
   priorityProfile: boolean;
+  /** Access to Mannye's Magic dream partner feature */
+  canMagic: boolean;
+  /** Explicit conversation mode in Magic */
+  canExplicit: boolean;
 }
 
 export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
-  explorer: { canChat: false, weeklyMatchLimit: null, verifiedBadge: false, concierge: false, priorityProfile: false },
-  verified: { canChat: true,  weeklyMatchLimit: null, verifiedBadge: true,  concierge: false, priorityProfile: false },
-  premium:  { canChat: true,  weeklyMatchLimit: null, verifiedBadge: true,  concierge: false, priorityProfile: false },
-  diamond:  { canChat: true,  weeklyMatchLimit: null, verifiedBadge: true,  concierge: true,  priorityProfile: true  },
+  explorer: { canChat: false, weeklyMatchLimit: null, verifiedBadge: false, concierge: false, priorityProfile: false, canMagic: false, canExplicit: false },
+  verified: { canChat: true,  weeklyMatchLimit: null, verifiedBadge: true,  concierge: false, priorityProfile: false, canMagic: false, canExplicit: false },
+  premium:  { canChat: true,  weeklyMatchLimit: null, verifiedBadge: true,  concierge: false, priorityProfile: false, canMagic: false, canExplicit: false },
+  diamond:  { canChat: true,  weeklyMatchLimit: null, verifiedBadge: true,  concierge: true,  priorityProfile: true,  canMagic: false, canExplicit: false },
+  magic:    { canChat: true,  weeklyMatchLimit: null, verifiedBadge: true,  concierge: true,  priorityProfile: true,  canMagic: true,  canExplicit: true  },
 };
 
 export const PLAN_LABEL: Record<Plan, string> = {
@@ -29,6 +34,7 @@ export const PLAN_LABEL: Record<Plan, string> = {
   verified: "Verified",
   premium: "Premium",
   diamond: "Diamond",
+  magic: "Mannye's Magic",
 };
 
 export interface TrialState {

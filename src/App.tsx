@@ -29,6 +29,7 @@ import ChatDiagnostics from "./pages/app/ChatDiagnostics";
 import SeedPhotosAdmin from "./pages/app/SeedPhotosAdmin";
 import Likes from "./pages/app/Likes";
 import SeedRepliesAdmin from "./pages/app/SeedRepliesAdmin";
+import ManneysMagic from "./pages/app/ManneysMagic";
 import NotFound from "./pages/NotFound.tsx";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
@@ -81,6 +82,7 @@ const App = () => {
               <Route path="profile/edit" element={guard(<EditProfile />, "Edit profile")} />
               <Route path="likes" element={guard(<Likes />, "Likes")} />
               <Route path="safety" element={guard(<Safety />, "Safety")} />
+              <Route path="magic" element={guard(<ManneysMagic />, "Mannye's Magic")} />
               <Route path="admin" element={<ProtectedRoute adminOnly>{guard(<Admin />, "Admin")}</ProtectedRoute>} />
               <Route path="admin/payments" element={<ProtectedRoute adminOnly>{guard(<PaymentsAdmin />, "Payments")}</ProtectedRoute>} />
               <Route path="admin/payment-events" element={<ProtectedRoute adminOnly>{guard(<PaymentEventsAdmin />, "Payment events")}</ProtectedRoute>} />

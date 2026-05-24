@@ -12,6 +12,7 @@ const PLAN_AMOUNTS: Record<string, number> = {
   verified: 100,
   premium: 180,
   diamond: 350,
+  magic: 500,
 };
 
 // Paystack plan codes — charges will be attached to the corresponding subscription plan.
@@ -19,6 +20,7 @@ const PLAN_CODES: Record<string, string> = {
   verified: "PLN_205chw5dpvabm1r",
   premium: "PLN_bwuihuygourt6mk",
   diamond: "PLN_mxxsrlm2cu9lct6",
+  magic: "PLN_magic_placeholder", // replace with real Paystack plan code once created
 };
 
 type Plan = keyof typeof PLAN_AMOUNTS;
