@@ -55,11 +55,11 @@ export default function Landing() {
           <div className="flex flex-col rounded-2xl border-2 border-ghana-gold/30 bg-card px-6 py-7 text-center">
             <p className="text-2xl">🍯</p>
             <p className="mt-2 text-xs uppercase tracking-widest font-semibold text-ghana-gold">Sweet</p>
-            <h3 className="mt-1 font-display text-xl font-bold text-ghana-brown">Real people.<br/>Real connection.</h3>
+            <h3 className="mt-1 font-display text-xl font-bold text-ghana-gold">Real people.<br/>Real connection.</h3>
             <p className="mt-3 text-sm text-muted-foreground flex-1">
               Browse profiles, send messages, and meet Ghanaians 35+ at home and across the diaspora.
             </p>
-            <div className="mt-4 text-xs text-muted-foreground">From <span className="font-semibold text-ghana-brown">Free</span></div>
+            <div className="mt-4 text-xs text-muted-foreground">From <span className="font-semibold text-ghana-gold">Free</span></div>
             <Link to="/auth" className="mt-4">
               <Button className="w-full bg-ghana-gold text-ghana-brown hover:bg-ghana-gold/90">
                 Get started
