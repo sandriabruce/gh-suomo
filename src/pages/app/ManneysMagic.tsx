@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Loader2, Lock, Sparkles, Send, ChevronRight, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
+import { applyMagicRuntimeTheme } from "@/lib/magicRuntimeTheme";
 
 type QuizStep = "voice" | "archetype" | "pulse" | "complexion" | "build" | "hair" | "name" | "building" | "chat";
 type Message = { role: "user" | "assistant"; content: string };
@@ -179,7 +180,12 @@ export default function ManneysMagic() {
 
   if (!limits.canMagic) return <MagicGate />;
 
-  // Derive attracted_to from profile — who is the user looking for
+  // ── Activate elite blue-gold theme while on this page ────────
+  // eslint-disable-next-line react-hooks/rules-of-hooks
+  useEffect(() => {
+    applyMagicRuntimeTheme(true);
+    return () => applyMagicRuntimeTheme(false);
+  }, []);
   // Profile stores the user's own gender and interested_in
   const userGender   = profile?.gender || "Woman";
   const interestedIn = profile?.interested_in || "Men";
