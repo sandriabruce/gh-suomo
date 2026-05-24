@@ -45,20 +45,62 @@ export default function Landing() {
           {SAMPLE_COUPLES.map((c) => <CoupleCard key={c.id} couple={c} />)}
         </div>
       </section>
-      <section className="mx-auto max-w-3xl px-4 pb-16 text-center">
-        <div className="rounded-2xl border border-amber-400/30 bg-amber-50/40 px-6 py-8">
-          <p className="text-xs uppercase tracking-widest text-amber-700 font-semibold">Scorching ✨ — the highest tier</p>
-          <h2 className="mt-2 font-display text-2xl font-bold text-ghana-brown">
-            Tell Mannye who you're looking for.
-          </h2>
-          <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-            Mannye's Magic. Create your perfect partner. Your answers become who you seek. 100% private.
-          </p>
-          <Link to="/auth">
-            <Button className="mt-5 bg-ghana-gold text-ghana-brown hover:bg-ghana-gold/90">
-              Try Scorching ✨
-            </Button>
-          </Link>
+      {/* ── Three tiers ───────────────────────────────────── */}
+      <section className="mx-auto max-w-5xl px-4 pb-16">
+        <h2 className="font-display text-2xl font-bold text-ghana-gold text-center mb-2">Choose your experience</h2>
+        <p className="text-center text-sm text-muted-foreground mb-8">Three ways to find who you're looking for.</p>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+
+          {/* Sweet */}
+          <div className="flex flex-col rounded-2xl border-2 border-ghana-gold/30 bg-card px-6 py-7 text-center">
+            <p className="text-2xl">🍯</p>
+            <p className="mt-2 text-xs uppercase tracking-widest font-semibold text-ghana-gold">Sweet</p>
+            <h3 className="mt-1 font-display text-xl font-bold text-ghana-brown">Real people.<br/>Real connection.</h3>
+            <p className="mt-3 text-sm text-muted-foreground flex-1">
+              Browse profiles, send messages, and meet Ghanaians 35+ at home and across the diaspora.
+            </p>
+            <div className="mt-4 text-xs text-muted-foreground">From <span className="font-semibold text-ghana-brown">Free</span></div>
+            <Link to="/auth" className="mt-4">
+              <Button className="w-full bg-ghana-gold text-ghana-brown hover:bg-ghana-gold/90">
+                Get started
+              </Button>
+            </Link>
+          </div>
+
+          {/* Spicy */}
+          <div className="flex flex-col rounded-2xl border-2 border-ghana-red/40 bg-gradient-to-b from-red-950/80 to-red-900/60 px-6 py-7 text-center">
+            <p className="text-2xl">🌶️</p>
+            <p className="mt-2 text-xs uppercase tracking-widest font-semibold text-red-400">Spicy</p>
+            <h3 className="mt-1 font-display text-xl font-bold text-amber-100">Turn up the heat.</h3>
+            <p className="mt-3 text-sm text-red-200/80 flex-1">
+              Diamond members unlock Spicy mode — a private lounge with a different energy. Adults only.
+            </p>
+            <div className="mt-4 text-xs text-red-300/70">Diamond · <span className="font-semibold text-amber-300">GHS 350/mo</span></div>
+            <Link to="/auth" className="mt-4">
+              <Button className="w-full bg-ghana-red text-white hover:bg-ghana-red/90">
+                Upgrade to Diamond
+              </Button>
+            </Link>
+          </div>
+
+          {/* Scorching */}
+          <div className="flex flex-col rounded-2xl border-2 border-amber-400/40 bg-gradient-to-b from-blue-950/80 to-blue-900/60 px-6 py-7 text-center">
+            <p className="text-2xl">🔥</p>
+            <p className="mt-2 text-xs uppercase tracking-widest font-semibold text-amber-400">Scorching</p>
+            <h3 className="mt-1 font-display text-xl font-bold text-amber-100">
+              Tell Mannye who you're looking for.
+            </h3>
+            <p className="mt-3 text-sm text-blue-200/80 flex-1">
+              Mannye's Magic. Answer six questions and meet your dream partner — built just for you. 100% private.
+            </p>
+            <div className="mt-4 text-xs text-blue-300/70">Scorching · <span className="font-semibold text-amber-300">GHS 500/mo</span></div>
+            <Link to="/auth" className="mt-4">
+              <Button className="w-full bg-ghana-gold text-ghana-brown hover:bg-ghana-gold/90">
+                Try Scorching ✨
+              </Button>
+            </Link>
+          </div>
+
         </div>
       </section>
       <InstallBanner />
