@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { Loader2, Lock, Sparkles, Send, ChevronRight, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 
-type QuizStep = "voice" | "archetype" | "pulse" | "look" | "name" | "building" | "chat";
+type QuizStep = "voice" | "archetype" | "pulse" | "complexion" | "build" | "hair" | "name" | "building" | "chat";
 type Message = { role: "user" | "assistant"; content: string };
 
 // ── Pronoun helpers ───────────────────────────────────────────────
@@ -63,22 +63,56 @@ function getPulseOptions(p: ReturnType<typeof getPronouns>) {
   ];
 }
 
-const LOOK_OPTIONS_M = [
-  { id: "1", label: "Dark skin, close-cut hair",   sub: "Strong build, commanding presence" },
-  { id: "2", label: "Medium complexion, bearded",   sub: "Lean, expressive eyes" },
-  { id: "3", label: "Deep brown skin, locs",        sub: "Broad shoulders, natural and grounded" },
-  { id: "4", label: "Light-medium, clean-shaven",   sub: "Sharp features, always put together" },
-  { id: "5", label: "Silver at the temples",        sub: "Distinguished, knows who he is" },
-  { id: "6", label: "Surprise me",                  sub: "Build them from what I've already said" },
+const COMPLEXION_OPTIONS = [
+  { id: "1", label: "Dark skin",          sub: "Deep, rich melanin — the darkest shade" },
+  { id: "2", label: "Brown skin",         sub: "Medium to deep brown complexion" },
+  { id: "3", label: "Light brown",        sub: "Golden or caramel tones" },
+  { id: "4", label: "Mixed race",         sub: "Dual heritage — varied features" },
+  { id: "5", label: "Caucasian",          sub: "White or light complexion" },
+  { id: "6", label: "Asian",             sub: "East, South, or Southeast Asian features" },
+  { id: "7", label: "Latino / Hispanic",  sub: "Latin American heritage" },
+  { id: "8", label: "Surprise me",        sub: "Mannye decides" },
 ];
 
-const LOOK_OPTIONS_F = [
-  { id: "1", label: "Dark skin, natural hair",      sub: "Full features, radiant presence" },
-  { id: "2", label: "Medium complexion, locs",      sub: "Warm eyes, effortlessly striking" },
-  { id: "3", label: "Deep brown, close-cut TWA",    sub: "Bold, unapologetically herself" },
-  { id: "4", label: "Light-medium, braids",         sub: "Soft features, quietly stunning" },
-  { id: "5", label: "Silver-streaked, mature",      sub: "Distinguished, completely at ease" },
-  { id: "6", label: "Surprise me",                  sub: "Build them from what I've already said" },
+const BUILD_OPTIONS_M = [
+  { id: "1", label: "Tall and broad",           sub: "6ft+, wide shoulders, commanding presence" },
+  { id: "2", label: "Tall and lean",            sub: "6ft+, slim, long-limbed" },
+  { id: "3", label: "Average height, athletic", sub: "5'9\"–6', muscular and fit" },
+  { id: "4", label: "Average height, lean",     sub: "5'9\"–6', slim build" },
+  { id: "5", label: "Shorter, stocky",          sub: "Under 5'9\", solid and grounded" },
+  { id: "6", label: "Doesn't matter",           sub: "Build isn't what draws me" },
+];
+
+const BUILD_OPTIONS_F = [
+  { id: "1", label: "Tall and curvy",   sub: "5'7\"+, full figure, striking" },
+  { id: "2", label: "Tall and slim",    sub: "5'7\"+, long-limbed, elegant" },
+  { id: "3", label: "Petite and curvy", sub: "Under 5'5\", full figure" },
+  { id: "4", label: "Petite and slim",  sub: "Under 5'5\", lean and fine-boned" },
+  { id: "5", label: "Average, athletic",sub: "Fit and toned" },
+  { id: "6", label: "Doesn't matter",  sub: "Build isn't what draws me" },
+];
+
+const HAIR_OPTIONS_M = [
+  { id: "1", label: "Close-cut / fade", sub: "Clean, sharp, low maintenance" },
+  { id: "2", label: "Locs",            sub: "Freeform or maintained dreadlocks" },
+  { id: "3", label: "Natural / Afro",  sub: "Big, shaped, or picked out" },
+  { id: "4", label: "Waves / curls",   sub: "Defined curl pattern" },
+  { id: "5", label: "Bald",           sub: "Completely shaved — clean and confident" },
+  { id: "6", label: "Silver / grey",   sub: "Distinguished and mature" },
+  { id: "7", label: "Straight hair",   sub: "For non-Afro textures" },
+  { id: "8", label: "Surprise me",     sub: "Whatever suits them" },
+];
+
+const HAIR_OPTIONS_F = [
+  { id: "1", label: "Natural / Afro",      sub: "Big, full, unrestrained" },
+  { id: "2", label: "Locs",               sub: "Freeform or maintained dreadlocks" },
+  { id: "3", label: "Braids",             sub: "Box braids, cornrows, or knotless" },
+  { id: "4", label: "TWA",               sub: "Teeny weeny afro — close and bold" },
+  { id: "5", label: "Relaxed / straight", sub: "Sleek and smooth" },
+  { id: "6", label: "Weave / extensions", sub: "Long, styled, versatile" },
+  { id: "7", label: "Curly / coily",      sub: "Defined curl pattern, voluminous" },
+  { id: "8", label: "Silver / grey",      sub: "Distinguished and natural" },
+  { id: "9", label: "Surprise me",        sub: "Whatever suits them" },
 ];
 
 // ── Gate ──────────────────────────────────────────────────────────
@@ -127,11 +161,13 @@ export default function ManneysMagic() {
   const { data: profile } = useProfile();
   const { limits } = useEntitlements();
 
-  const [step, setStep]             = useState<QuizStep>("voice");
-  const [voice, setVoice]           = useState("");
-  const [archetype, setArchetype]   = useState("");
-  const [pulse, setPulse]           = useState("");
-  const [look, setLook]             = useState("");
+  const [step, setStep]               = useState<QuizStep>("voice");
+  const [voice, setVoice]             = useState("");
+  const [archetype, setArchetype]     = useState("");
+  const [pulse, setPulse]             = useState("");
+  const [complexion, setComplexion]   = useState("");
+  const [build, setBuild]             = useState("");
+  const [hair, setHair]               = useState("");
   const [partnerName, setPartnerName] = useState("");
   const [partner, setPartner]       = useState<any>(null);
   const [messages, setMessages]     = useState<Message[]>([]);
@@ -145,10 +181,11 @@ export default function ManneysMagic() {
 
   // Derive attracted_to from profile — who is the user looking for
   // Profile stores the user's own gender and interested_in
-  const userGender    = profile?.gender || "Woman";
-  const interestedIn  = profile?.interested_in || "Men";
-  const pronouns      = getPronouns(interestedIn);
-  const lookOptions   = interestedIn === "Women" ? LOOK_OPTIONS_F : LOOK_OPTIONS_M;
+  const userGender   = profile?.gender || "Woman";
+  const interestedIn = profile?.interested_in || "Men";
+  const pronouns     = getPronouns(interestedIn);
+  const buildOptions = interestedIn === "Women" ? BUILD_OPTIONS_F : BUILD_OPTIONS_M;
+  const hairOptions  = interestedIn === "Women" ? HAIR_OPTIONS_F : HAIR_OPTIONS_M;
 
   // Load existing partner
   useEffect(() => {
@@ -168,13 +205,13 @@ export default function ManneysMagic() {
   }, [messages]);
 
   async function buildPartner() {
-    if (!user || !partnerName.trim() || !voice || !archetype || !pulse || !look) return;
+    if (!user || !partnerName.trim() || !voice || !archetype || !pulse || !complexion || !build || !hair) return;
     setStep("building");
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      const supaUrl  = import.meta.env.VITE_SUPABASE_URL;
-      const anonKey  = import.meta.env.VITE_SUPABASE_ANON_KEY ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
+      const supaUrl = import.meta.env.VITE_SUPABASE_URL;
+      const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+      const lookChoice = `complexion:${complexion} build:${build} hair:${hair}`;
       const res = await fetch(`${supaUrl}/functions/v1/manneys-magic-build`, {
         method: "POST",
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${session?.access_token ?? anonKey}` },
@@ -184,7 +221,10 @@ export default function ManneysMagic() {
           voice_choice: voice,
           archetype_choice: archetype,
           pulse_choice: pulse,
-          look_choice: look,
+          look_choice: lookChoice,
+          complexion_choice: complexion,
+          build_choice: build,
+          hair_choice: hair,
           user_gender: userGender,
           interested_in: interestedIn,
         }),
@@ -196,7 +236,7 @@ export default function ManneysMagic() {
       setStep("chat");
     } catch (e: any) {
       toast.error("Something went wrong. Please try again.");
-      setStep("name");
+      setStep("hair");
     }
   }
 
@@ -252,11 +292,12 @@ export default function ManneysMagic() {
     if (!user) return;
     await supabase.from("magic_dream_partners").delete().eq("user_id", user.id);
     setPartner(null); setMessages([]);
-    setVoice(""); setArchetype(""); setPulse(""); setLook(""); setPartnerName("");
+    setVoice(""); setArchetype(""); setPulse("");
+    setComplexion(""); setBuild(""); setHair(""); setPartnerName("");
     setStep("voice");
   }
 
-  // ── Building state ────────────────────────────────────────────
+  // ── Building ──────────────────────────────────────────────────
   if (step === "building") {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4">
@@ -274,7 +315,7 @@ export default function ManneysMagic() {
     return (
       <div className="space-y-5">
         <div>
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">Mannye's Magic · Step 1 of 4</p>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Mannye's Magic · Step 1 of 6</p>
           <h1 className="mt-1 font-display text-xl font-bold text-ghana-brown">
             Imagine {pronouns.them} leaning in close.
           </h1>
@@ -298,7 +339,7 @@ export default function ManneysMagic() {
     return (
       <div className="space-y-5">
         <div>
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">Mannye's Magic · Step 2 of 4</p>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Mannye's Magic · Step 2 of 6</p>
           <h1 className="mt-1 font-display text-xl font-bold text-ghana-brown">Now — who is {pronouns.they}?</h1>
         </div>
         <div className="space-y-2">
@@ -322,7 +363,7 @@ export default function ManneysMagic() {
     return (
       <div className="space-y-5">
         <div>
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">Mannye's Magic · Step 3 of 4</p>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Mannye's Magic · Step 3 of 6</p>
           <h1 className="mt-1 font-display text-xl font-bold text-ghana-brown">Which of these makes your pulse quicken?</h1>
         </div>
         <div className="space-y-2">
@@ -332,7 +373,7 @@ export default function ManneysMagic() {
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => setStep("archetype")} className="flex-1">Back</Button>
-          <Button disabled={!pulse} onClick={() => setStep("look")}
+          <Button disabled={!pulse} onClick={() => setStep("complexion")}
             className="flex-1 bg-ghana-gold text-ghana-brown hover:bg-ghana-gold/90">
             Continue <ChevronRight className="ml-1 h-4 w-4" />
           </Button>
@@ -341,27 +382,76 @@ export default function ManneysMagic() {
     );
   }
 
-  // ── Q4: Look ──────────────────────────────────────────────────
-  if (step === "look") {
+  // ── Q4: Complexion ────────────────────────────────────────────
+  if (step === "complexion") {
     return (
       <div className="space-y-5">
         <div>
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">Mannye's Magic · Step 4 of 4</p>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Mannye's Magic · Step 4 of 6</p>
           <h1 className="mt-1 font-display text-xl font-bold text-ghana-brown">
-            Paint me a picture of {pronouns.them}.
+            What's {pronouns.theirPos} complexion?
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Mannye will generate a portrait from your answer.
-          </p>
         </div>
         <div className="space-y-2">
-          {lookOptions.map(o => (
-            <OptionCard key={o.id} {...o} selected={look === o.id} onSelect={setLook} />
+          {COMPLEXION_OPTIONS.map(o => (
+            <OptionCard key={o.id} {...o} selected={complexion === o.id} onSelect={setComplexion} />
           ))}
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => setStep("pulse")} className="flex-1">Back</Button>
-          <Button disabled={!look} onClick={() => setStep("name")}
+          <Button disabled={!complexion} onClick={() => setStep("build")}
+            className="flex-1 bg-ghana-gold text-ghana-brown hover:bg-ghana-gold/90">
+            Continue <ChevronRight className="ml-1 h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Q5: Build ─────────────────────────────────────────────────
+  if (step === "build") {
+    return (
+      <div className="space-y-5">
+        <div>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Mannye's Magic · Step 5 of 6</p>
+          <h1 className="mt-1 font-display text-xl font-bold text-ghana-brown">
+            {pronouns.They === "They" ? "Their" : pronouns.They === "She" ? "Her" : "His"} build?
+          </h1>
+        </div>
+        <div className="space-y-2">
+          {buildOptions.map(o => (
+            <OptionCard key={o.id} {...o} selected={build === o.id} onSelect={setBuild} />
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setStep("complexion")} className="flex-1">Back</Button>
+          <Button disabled={!build} onClick={() => setStep("hair")}
+            className="flex-1 bg-ghana-gold text-ghana-brown hover:bg-ghana-gold/90">
+            Continue <ChevronRight className="ml-1 h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Q6: Hair ──────────────────────────────────────────────────
+  if (step === "hair") {
+    return (
+      <div className="space-y-5">
+        <div>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Mannye's Magic · Step 6 of 6</p>
+          <h1 className="mt-1 font-display text-xl font-bold text-ghana-brown">
+            {pronouns.They === "They" ? "Their" : pronouns.They === "She" ? "Her" : "His"} hair?
+          </h1>
+        </div>
+        <div className="space-y-2">
+          {hairOptions.map(o => (
+            <OptionCard key={o.id} {...o} selected={hair === o.id} onSelect={setHair} />
+          ))}
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setStep("build")} className="flex-1">Back</Button>
+          <Button disabled={!hair} onClick={() => setStep("name")}
             className="flex-1 bg-ghana-gold text-ghana-brown hover:bg-ghana-gold/90">
             Continue <ChevronRight className="ml-1 h-4 w-4" />
           </Button>
@@ -385,7 +475,7 @@ export default function ManneysMagic() {
           className="text-base"
           onKeyDown={e => { if (e.key === "Enter" && partnerName.trim()) buildPartner(); }} />
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setStep("look")} className="flex-1">Back</Button>
+          <Button variant="outline" onClick={() => setStep("hair")} className="flex-1">Back</Button>
           <Button disabled={!partnerName.trim()} onClick={buildPartner}
             className="flex-1 bg-ghana-gold text-ghana-brown hover:bg-ghana-gold/90">
             Bring {pronouns.them} to life ✨
