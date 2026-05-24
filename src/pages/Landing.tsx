@@ -45,6 +45,22 @@ export default function Landing() {
           {SAMPLE_COUPLES.map((c) => <CoupleCard key={c.id} couple={c} />)}
         </div>
       </section>
+      <section className="mx-auto max-w-3xl px-4 pb-16 text-center">
+        <div className="rounded-2xl border border-amber-400/30 bg-amber-50/40 px-6 py-8">
+          <p className="text-xs uppercase tracking-widest text-amber-700">Mannye's Magic</p>
+          <h2 className="mt-2 font-display text-2xl font-bold text-ghana-brown">
+            Tell Mannye who you're looking for.
+          </h2>
+          <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+            Create your perfect partner. Your answers become who you seek. 100% private.
+          </p>
+          <Link to="/auth">
+            <Button className="mt-5 bg-ghana-gold text-ghana-brown hover:bg-ghana-gold/90">
+              Try Mannye's Magic ✨
+            </Button>
+          </Link>
+        </div>
+      </section>
       <InstallBanner />
       <footer className="border-t border-ghana-gold/20 bg-card/50 px-4 py-8 mt-4">
         <div className="mx-auto max-w-4xl">

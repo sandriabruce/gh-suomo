@@ -52,8 +52,8 @@ function MagicGate() {
       </div>
       <div>
         <h1 className="font-display text-2xl font-bold text-ghana-brown">Mannye's Magic</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Create your perfect partner</p>
-        <p className="mt-1 text-xs text-muted-foreground italic">Your answers become who you seek. 100% private.</p>
+        <p className="mt-1 text-sm font-medium text-ghana-brown/70 italic">Tell Mannye who you're looking for.</p>
+        <p className="mt-1 text-xs text-muted-foreground">Your answers become who you seek. 100% private.</p>
       </div>
       <div className="w-full max-w-xs rounded-2xl border-2 border-amber-400/40 bg-amber-50/60 p-5">
         <div className="flex items-center gap-2 text-amber-800">
