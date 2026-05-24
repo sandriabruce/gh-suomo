@@ -88,11 +88,11 @@ const App = () => {
               <Route path="admin/seed-photos" element={<ProtectedRoute adminOnly>{guard(<SeedPhotosAdmin />, "Seed photos")}</ProtectedRoute>} />
               <Route path="admin/seed-replies" element={<ProtectedRoute adminOnly>{guard(<SeedRepliesAdmin />, "Seed replies")}</ProtectedRoute>} />
             </Route>
-            <Route path="/terms" element={guard(<Terms />, "Terms")} />
-            <Route path="/privacy" element={guard(<Privacy />, "Privacy")} />
-            <Route path="/ai-disclosure" element={guard(<AIDisclosure />, "AI Disclosure")} />
-            <Route path="/refunds" element={guard(<RefundPolicy />, "Refund Policy")} />
-            <Route path="/guidelines" element={guard(<CommunityGuidelines />, "Community Guidelines")} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/ai-disclosure" element={<AIDisclosure />} />
+            <Route path="/refunds" element={<RefundPolicy />} />
+            <Route path="/guidelines" element={<CommunityGuidelines />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </ErrorBoundary>
