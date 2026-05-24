@@ -20,7 +20,7 @@ const PLAN_CODES: Record<string, string> = {
   verified: "PLN_205chw5dpvabm1r",
   premium: "PLN_bwuihuygourt6mk",
   diamond: "PLN_mxxsrlm2cu9lct6",
-  magic: "PLN_magic_placeholder", // replace with real Paystack plan code once created
+  magic: "PLN_okt3ifrgw4f6q58",
 };
 
 type Plan = keyof typeof PLAN_AMOUNTS;
