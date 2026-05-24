@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
 
     // Always log the event for audit, idempotently by event_id.
     const sb = admin();
-    const eventId = `${eventType}:${reference}:${data?.id ?? ""}`;
+    const eventId = `${eventType}:${reference ?? data?.subscription_code ?? data?.id ?? ""}:${data?.id ?? ""}`;
     await sb.from("payment_events").upsert(
       {
         provider: "paystack",
@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
       { onConflict: "provider,event_id" },
     );
 
-    // Activate on success-like events.
+    // ── Activate on successful charge ──────────────────────────────────
     if (eventType === "charge.success" && reference) {
       const result = await activateFromPaystackData({
         reference,
@@ -67,6 +67,75 @@ Deno.serve(async (req) => {
         metadata: data.metadata ?? null,
       });
       console.log("paystack-webhook activated", result);
+    }
+
+    // ── Downgrade / cancel on subscription end events ──────────────────
+    // These fire when a Paystack subscription is cancelled, disabled, or fails to renew.
+    if (
+      eventType === "subscription.disable" ||
+      eventType === "subscription.not_renew" ||
+      eventType === "invoice.payment_failed"
+    ) {
+      const customerId = data?.customer?.id ?? data?.customer_id ?? null;
+      const subscriptionCode = data?.subscription_code ?? null;
+
+      // Find the user from subscriptions table by paystack reference or subscription code
+      let userId: string | null = null;
+
+      if (subscriptionCode) {
+        const { data: sub } = await sb
+          .from("subscriptions")
+          .select("user_id, id")
+          .eq("paystack_reference", subscriptionCode)
+          .maybeSingle();
+        userId = sub?.user_id ?? null;
+        if (sub?.id) {
+          await sb.from("subscriptions").update({
+            status: eventType === "invoice.payment_failed" ? "past_due" : "cancelled",
+            updated_at: new Date().toISOString(),
+          }).eq("id", sub.id);
+        }
+      }
+
+      // If we found the user, downgrade their profile plan to explorer
+      if (userId) {
+        await sb.from("profiles").update({
+          plan: "explorer",
+          updated_at: new Date().toISOString(),
+        }).eq("id", userId);
+        console.log(`paystack-webhook: downgraded user ${userId} to explorer (${eventType})`);
+      } else {
+        console.warn(`paystack-webhook: could not find user for ${eventType}`, { subscriptionCode, customerId });
+      }
+    }
+
+    // ── Re-activate on subscription renewal ───────────────────────────
+    if (eventType === "invoice.payment_success" || eventType === "subscription.enable") {
+      const subscriptionCode = data?.subscription_code ?? null;
+      if (subscriptionCode && reference) {
+        // Find the subscription and reactivate it
+        const { data: sub } = await sb
+          .from("subscriptions")
+          .select("user_id, plan, id")
+          .eq("paystack_reference", subscriptionCode)
+          .maybeSingle();
+
+        if (sub?.user_id && sub?.plan) {
+          const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+          await sb.from("subscriptions").update({
+            status: "active",
+            expires_at: expiresAt,
+            updated_at: new Date().toISOString(),
+          }).eq("id", sub.id);
+
+          await sb.from("profiles").update({
+            plan: sub.plan,
+            updated_at: new Date().toISOString(),
+          }).eq("id", sub.user_id);
+
+          console.log(`paystack-webhook: renewed ${sub.user_id} on ${sub.plan}`);
+        }
+      }
     }
 
     return new Response("ok", { status: 200 });
