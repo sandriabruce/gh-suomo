@@ -30,6 +30,11 @@ import SeedPhotosAdmin from "./pages/app/SeedPhotosAdmin";
 import Likes from "./pages/app/Likes";
 import SeedRepliesAdmin from "./pages/app/SeedRepliesAdmin";
 import NotFound from "./pages/NotFound.tsx";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
+import AIDisclosure from "./pages/AIDisclosure";
+import RefundPolicy from "./pages/RefundPolicy";
+import CommunityGuidelines from "./pages/CommunityGuidelines";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -83,6 +88,11 @@ const App = () => {
               <Route path="admin/seed-photos" element={<ProtectedRoute adminOnly>{guard(<SeedPhotosAdmin />, "Seed photos")}</ProtectedRoute>} />
               <Route path="admin/seed-replies" element={<ProtectedRoute adminOnly>{guard(<SeedRepliesAdmin />, "Seed replies")}</ProtectedRoute>} />
             </Route>
+            <Route path="/terms" element={guard(<Terms />, "Terms")} />
+            <Route path="/privacy" element={guard(<Privacy />, "Privacy")} />
+            <Route path="/ai-disclosure" element={guard(<AIDisclosure />, "AI Disclosure")} />
+            <Route path="/refunds" element={guard(<RefundPolicy />, "Refund Policy")} />
+            <Route path="/guidelines" element={guard(<CommunityGuidelines />, "Community Guidelines")} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           </ErrorBoundary>

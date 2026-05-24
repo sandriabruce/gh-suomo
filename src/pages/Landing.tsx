@@ -46,6 +46,21 @@ export default function Landing() {
         </div>
       </section>
       <InstallBanner />
+      <footer className="border-t border-ghana-gold/20 bg-card/50 px-4 py-8 mt-4">
+        <div className="mx-auto max-w-4xl">
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs text-muted-foreground">
+            <Link to="/terms" className="hover:text-ghana-gold transition-colors">Terms of Service</Link>
+            <Link to="/privacy" className="hover:text-ghana-gold transition-colors">Privacy Policy</Link>
+            <Link to="/ai-disclosure" className="hover:text-ghana-gold transition-colors">AI Disclosure</Link>
+            <Link to="/refunds" className="hover:text-ghana-gold transition-colors">Refunds</Link>
+            <Link to="/guidelines" className="hover:text-ghana-gold transition-colors">Community Guidelines</Link>
+            <a href="mailto:hello@ghsuomo.com" className="hover:text-ghana-gold transition-colors">Contact</a>
+          </div>
+          <p className="mt-4 text-center text-[11px] text-muted-foreground/60">
+            © {new Date().getFullYear()} GH SUƆMƆ. All rights reserved. · For Ghanaians 35+ worldwide. · Documents pending final legal review.
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
