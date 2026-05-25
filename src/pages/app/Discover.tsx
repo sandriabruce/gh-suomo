@@ -194,14 +194,16 @@ export default function Discover() {
     hasNextPage,
     error: fetchError,
   } = useInfiniteQuery({
-    queryKey: ["discover-feed", targetGenders],
+    queryKey: ["discover-feed", targetGenders, plan],
     initialPageParam: 0,
     getNextPageParam: (last: Candidate[], all) =>
       last.length < PAGE_SIZE ? undefined : all.length,
     queryFn: async ({ pageParam }) => {
       const from = (pageParam as number) * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
-      const { data, error } = await seedClient
+      // Diamond and Scorching (magic) users see all seeds; everyone else sees Sweet (explorer) only
+      const canSeeSpicySeeds = plan === "diamond" || plan === "magic";
+      let query = seedClient
         .from("profiles")
         .select("id, first_name, age, location, bio, photos, verified, interests, prompts, ethnicity, spicy_bio, spicy_photos, spicy_prompts")
         .eq("is_seed", true)
@@ -209,6 +211,10 @@ export default function Discover() {
         .neq("banned", true)
         .order("id", { ascending: true })
         .range(from, to);
+      if (!canSeeSpicySeeds) {
+        query = (query as any).eq("min_tier", "explorer");
+      }
+      const { data, error } = await query;
       if (error) throw error;
       const mapped = (data ?? []).map(mapRow);
       if (pageParam === 0) {
