@@ -82,7 +82,7 @@ const App = () => {
               <Route path="profile/edit" element={guard(<EditProfile />, "Edit profile")} />
               <Route path="likes" element={guard(<Likes />, "Likes")} />
               <Route path="safety" element={guard(<Safety />, "Safety")} />
-              <Route path="magic" element={guard(<ManneysMagic />, "Mannye's Magic")} />
+              <Route path="magic" element={guard(<ManneysMagic />, "Suɔmɔ Magic")} />
               <Route path="admin" element={<ProtectedRoute adminOnly>{guard(<Admin />, "Admin")}</ProtectedRoute>} />
               <Route path="admin/payments" element={<ProtectedRoute adminOnly>{guard(<PaymentsAdmin />, "Payments")}</ProtectedRoute>} />
               <Route path="admin/payment-events" element={<ProtectedRoute adminOnly>{guard(<PaymentEventsAdmin />, "Payment events")}</ProtectedRoute>} />

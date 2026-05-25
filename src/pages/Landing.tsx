@@ -91,7 +91,7 @@ export default function Landing() {
               Tell Mannye who you're looking for.
             </h3>
             <p className="mt-3 text-sm text-blue-200/80 flex-1">
-              Mannye's Magic. Answer six questions and meet your dream partner — built just for you. 100% private.
+              Suɔmɔ Magic. Answer six questions and meet your dream partner — built just for you. 100% private.
             </p>
             <div className="mt-4 text-xs text-blue-300/70">Scorching · <span className="font-semibold text-amber-300">GHS 500/mo</span></div>
             <Link to="/auth" className="mt-4">
