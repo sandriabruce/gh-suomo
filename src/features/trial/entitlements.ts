@@ -15,7 +15,7 @@ export interface PlanLimits {
   concierge: boolean;
   /** Profile is boosted in the deck */
   priorityProfile: boolean;
-  /** Access to Suɔmɔ Magic dream partner feature */
+  /** Access to Suɔmɔ's Sorcery dream partner feature */
   canMagic: boolean;
   /** Explicit conversation mode in Magic */
   canExplicit: boolean;

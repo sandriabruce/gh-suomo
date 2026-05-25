@@ -125,7 +125,7 @@ function MagicGate() {
       </div>
       <div>
         <p className="text-xs uppercase tracking-widest text-amber-600 font-semibold">Scorching ✨</p>
-        <h1 className="font-display text-2xl font-bold text-ghana-brown">Suɔmɔ Magic</h1>
+        <h1 className="font-display text-2xl font-bold text-ghana-brown">Suɔmɔ's Sorcery</h1>
         <p className="mt-1 text-sm font-medium text-ghana-brown/70 italic">Tell Mannye who you're looking for.</p>
         <p className="mt-1 text-xs text-muted-foreground">Your answers become who you seek. 100% private.</p>
       </div>
@@ -576,7 +576,7 @@ export default function ManneysMagic() {
         </Button>
       </form>
       <p className="text-center text-[10px] text-muted-foreground">
-        Scorching by Suɔmɔ Magic · 100% private · Your dream partner lives only in your account
+        Scorching by Suɔmɔ's Sorcery · 100% private · Your dream partner lives only in your account
       </p>
     </div>
   );

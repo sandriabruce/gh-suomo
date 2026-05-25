@@ -408,7 +408,7 @@ All colors MUST be HSL.
 }
 
 /* ============================================================
-   SCORCHING / SUƆMƆ MAGIC MODE — elite royal blue + gold
+   SCORCHING / SUƆMƆ'S SORCERY MODE — elite royal blue + gold
    Activated by adding `.magic-mode` to <html>.
    Same architecture as spicy-mode — baked into CSS, not injected.
    ============================================================ */
@@ -448,7 +448,7 @@ All colors MUST be HSL.
   }
 
   html.magic-mode body::before {
-    content: "SUƆMƆ MAGIC";
+    content: "SUƆMƆ'S SORCERY";
     position: fixed;
     inset: 0;
     display: flex;
