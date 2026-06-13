@@ -550,31 +550,9 @@ export default function Chat() {
       setAudioUrl(null);
       audioChunksRef.current = [];
 
-      // Transcribe via Netlify function — no egress restrictions, reaches OpenAI freely
-      const publicUrl = `https://bjfvmgymyfwgbzntcigj.supabase.co/storage/v1/object/public/profile-photos/${path}`;
-      try {
-        console.log("[transcribe] calling /api/transcribe with:", publicUrl);
-        const tr = await fetch("https://ghsuomo.com/.netlify/functions/transcribe", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ audio_url: publicUrl }),
-        });
-        console.log("[transcribe] status:", tr.status);
-        if (tr.ok) {
-          const d = await tr.json();
-          console.log("[transcribe] result:", d.transcript?.slice(0, 80));
-          if (d.transcript) {
-            triggerSeedReply(`[voice] ${d.transcript}`);
-            return;
-          }
-        } else {
-          console.warn("[transcribe] failed:", tr.status, await tr.text());
-        }
-      } catch (e) {
-        console.warn("[transcribe] error:", e);
-      }
-      // Fallback
-      triggerSeedReply("[voice note]");
+      // Transcription happens server-side in generate-seed-response (v63+).
+      // Send the storage path so the edge function can fetch the audio and call Whisper directly.
+      triggerSeedReply(`${VOICE_PATH_PREFIX}${path}`);
     } catch (e) {
       toast.error("Voice note not sent.");
     } finally {
