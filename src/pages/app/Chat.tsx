@@ -549,6 +549,33 @@ export default function Chat() {
       await sendContent(`${VOICE_PATH_PREFIX}${path}`);
       setAudioUrl(null);
       audioChunksRef.current = [];
+
+      // Transcribe the voice note so the seed can actually hear what was said
+      try {
+        const supaUrl = import.meta.env.VITE_SUPABASE_URL;
+        const sessionResult = await supabase.auth.getSession();
+        const session = sessionResult.data.session;
+        const transcribeRes = await fetch(`${supaUrl}/functions/v1/transcribe-voice-note`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(session ? { "Authorization": `Bearer ${session.access_token}` } : {}),
+          },
+          body: JSON.stringify({ audio_path: path, match_id: matchId }),
+        });
+        if (transcribeRes.ok) {
+          const { transcript } = await transcribeRes.json();
+          if (transcript) {
+            // Pass the actual spoken words to the seed — it now knows what you said
+            triggerSeedReply(`[voice] ${transcript}`);
+            return;
+          }
+        }
+      } catch (transcribeErr) {
+        console.warn("[transcribe] Failed, falling back to generic voice note", transcribeErr);
+      }
+      // Fallback if transcription fails
+      triggerSeedReply("[voice note]");
     } catch (e) {
       toast.error("Voice note not sent.");
     } finally {
