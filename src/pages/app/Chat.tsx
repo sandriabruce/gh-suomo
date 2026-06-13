@@ -649,6 +649,9 @@ export default function Chat() {
       console.log("[seed-reply] scheduled in", Math.round(delayMs / 1000), "s →", url, payload);
       setSeedTyping(true);
       if (seedReplyTimerRef.current !== null) clearTimeout(seedReplyTimerRef.current);
+      // Scale typing delay: ~35ms per character, min 4s, max 40s
+      // This will be refined after we get the actual reply length back
+      const estimatedDelay = Math.min(Math.max(4_000, delayMs), 40_000);
       seedReplyTimerRef.current = window.setTimeout(() => {
         seedReplyTimerRef.current = null;
         fetch(url, {
