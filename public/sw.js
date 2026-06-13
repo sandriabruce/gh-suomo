@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ghsuomo-v5';
+const CACHE_NAME = 'ghsuomo-v6';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
