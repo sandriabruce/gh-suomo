@@ -1,26 +1,35 @@
-// Netlify serverless function — no egress restrictions, can reach api.openai.com freely
-const https = require('https');
-const { Readable } = require('stream');
-
 exports.handler = async (event) => {
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Content-Type': 'application/json',
+  };
+
+  // Handle CORS preflight
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers, body: '' };
+  }
+
   if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: 'Method not allowed' };
+    return { statusCode: 405, headers, body: JSON.stringify({ error: 'Method not allowed' }) };
   }
 
   const openaiKey = process.env.OPENAI_API_KEY;
   if (!openaiKey) {
-    return { statusCode: 500, body: JSON.stringify({ error: 'No OPENAI_API_KEY set' }) };
+    console.error('[transcribe] No OPENAI_API_KEY');
+    return { statusCode: 500, headers, body: JSON.stringify({ error: 'No OPENAI_API_KEY set' }) };
   }
 
   try {
-    const { audio_url } = JSON.parse(event.body);
+    const body = JSON.parse(event.body || '{}');
+    const { audio_url } = body;
     if (!audio_url) {
-      return { statusCode: 400, body: JSON.stringify({ error: 'Missing audio_url' }) };
+      return { statusCode: 400, headers, body: JSON.stringify({ error: 'Missing audio_url' }) };
     }
 
     console.log('[transcribe] fetching audio:', audio_url);
 
-    // Fetch audio from public Supabase bucket
     const audioRes = await fetch(audio_url);
     if (!audioRes.ok) {
       throw new Error(`Audio fetch failed: ${audioRes.status}`);
@@ -32,36 +41,36 @@ exports.handler = async (event) => {
       throw new Error('Audio too small');
     }
 
-    // Build multipart form for Whisper
-    const boundary = '----FormBoundary' + Math.random().toString(36).slice(2);
-    const filename = audio_url.endsWith('.m4a') ? 'audio.m4a' : 'audio.webm';
+    const filename = audio_url.includes('.m4a') ? 'audio.m4a' : 'audio.webm';
     const mimeType = filename.endsWith('.m4a') ? 'audio/mp4' : 'audio/webm';
+    const boundary = '----WaveFormBoundary' + Date.now().toString(36);
 
     const audioBytes = Buffer.from(audioBuf);
     const header = Buffer.from(
       `--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="${filename}"\r\nContent-Type: ${mimeType}\r\n\r\n`
     );
-    const modelPart = Buffer.from(
+    const footer = Buffer.from(
       `\r\n--${boundary}\r\nContent-Disposition: form-data; name="model"\r\n\r\nwhisper-1\r\n--${boundary}\r\nContent-Disposition: form-data; name="language"\r\n\r\nen\r\n--${boundary}--`
     );
 
-    const body = Buffer.concat([header, audioBytes, modelPart]);
+    const formBody = Buffer.concat([header, audioBytes, footer]);
 
-    // Call OpenAI Whisper
+    console.log('[transcribe] calling Whisper, form size:', formBody.byteLength);
+
     const whisperRes = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openaiKey}`,
         'Content-Type': `multipart/form-data; boundary=${boundary}`,
       },
-      body,
+      body: formBody,
     });
 
     console.log('[transcribe] Whisper status:', whisperRes.status);
 
     if (!whisperRes.ok) {
       const err = await whisperRes.text();
-      console.error('[transcribe] Whisper error:', err);
+      console.error('[transcribe] Whisper error:', err.slice(0, 300));
       throw new Error(`Whisper ${whisperRes.status}: ${err.slice(0, 200)}`);
     }
 
@@ -73,7 +82,7 @@ exports.handler = async (event) => {
 
     return {
       statusCode: 200,
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ transcript }),
     };
 
@@ -81,7 +90,7 @@ exports.handler = async (event) => {
     console.error('[transcribe] ERROR:', e.message);
     return {
       statusCode: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ error: e.message }),
     };
   }
