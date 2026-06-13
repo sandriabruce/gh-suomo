@@ -867,22 +867,42 @@ export default function Chat() {
               <audio src={audioUrl} controls className="flex-1 h-8 min-w-0" />
               <Button size="icon" variant="ghost" onClick={cancelVoice} className="shrink-0 text-destructive" aria-label="Cancel"><MicOff className="h-4 w-4" /></Button>
               <Button size="sm" onClick={async () => {
+                  // Transcribe directly from browser using the raw blob — no egress restrictions
+                  const blob = audioChunksRef.current.length > 0
+                    ? new Blob(audioChunksRef.current, { type: mediaRecorderRef.current?.mimeType ?? "audio/webm" })
+                    : null;
+                  
                   const storagePath = await sendVoiceNote();
                   if (!storagePath) return;
+                  
                   let replyContent = `[voicepath]${storagePath}`;
-                  try {
-                    const supaUrl = import.meta.env.VITE_SUPABASE_URL;
-                    const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-                    const tr = await fetch(`${supaUrl}/functions/v1/transcribe-voice-note`, {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json", Authorization: `Bearer ${anonKey}` },
-                      body: JSON.stringify({ audio_path: storagePath }),
-                    });
-                    if (tr.ok) {
-                      const d = await tr.json();
-                      if (d.transcript) replyContent = `[voice] ${d.transcript}`;
+                  
+                  if (blob && blob.size > 500) {
+                    try {
+                      const openaiKey = import.meta.env.VITE_OPENAI_API_KEY;
+                      if (openaiKey) {
+                        const ext = blob.type.includes("mp4") ? "m4a" : "webm";
+                        const form = new FormData();
+                        form.append("file", blob, `audio.${ext}`);
+                        form.append("model", "whisper-1");
+                        form.append("language", "en");
+                        const tr = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+                          method: "POST",
+                          headers: { Authorization: `Bearer ${openaiKey}` },
+                          body: form,
+                        });
+                        if (tr.ok) {
+                          const d = await tr.json();
+                          if (d.text?.trim()) replyContent = `[voice] ${d.text.trim()}`;
+                        } else {
+                          console.warn("[transcribe] Whisper error:", tr.status);
+                        }
+                      }
+                    } catch (e) {
+                      console.warn("[transcribe] failed:", e);
                     }
-                  } catch {}
+                  }
+                  
                   triggerSeedReply(replyContent);
                 }} disabled={uploading} className="shrink-0 bg-ghana-gold text-ghana-brown">
                 {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Send"}
