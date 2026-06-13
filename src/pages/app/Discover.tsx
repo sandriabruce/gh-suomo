@@ -306,6 +306,7 @@ export default function Discover() {
         .or(`and(user_a.eq.${user.id},user_b.eq.${otherId}),and(user_a.eq.${otherId},user_b.eq.${user.id})`)
         .limit(1);
       let matchId = existing?.[0]?.id;
+      const isNewMatch = !matchId;
       if (!matchId) {
         const { data: created, error } = await seedClient
           .from("matches")
@@ -314,6 +315,18 @@ export default function Discover() {
           .single();
         if (error) { toast.error(error.message); return; }
         matchId = created.id;
+      }
+      // If this is a brand new match with a seed, trigger opening message immediately
+      // rather than waiting up to 30 minutes for the cron job
+      if (isNewMatch) {
+        fetch("https://bjfvmgymyfwgbzntcigj.supabase.co/functions/v1/seed-initiate-message", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${(await seedClient.auth.getSession()).data.session?.access_token}`,
+          },
+          body: JSON.stringify({ match_id: matchId, seed_id: otherId }),
+        }).catch(() => {}); // fire and forget — don't block navigation
       }
       setOpenId(null);
       navigate(`/app/chat/${matchId}`);
