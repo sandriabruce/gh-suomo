@@ -32,7 +32,22 @@
   <meta property="og:description" content="GH SUƆMƆ — Roots &amp; Romance. A respectful dating community for Ghanaians 40+ at home and in the diaspora.">
   <meta name="twitter:description" content="GH SUƆMƆ — Roots &amp; Romance. A respectful dating community for Ghanaians 40+ at home and in the diaspora.">
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
-</head>
+
+    <script>
+      // PWA back-button trap: in standalone mode, prevent back gesture from escaping to sign-in
+      (function() {
+        var isStandalone = window.matchMedia('(display-mode: standalone)').matches
+          || window.navigator.standalone === true;
+        if (!isStandalone) return;
+        // Push initial state so there's always something to pop back to
+        history.pushState({ pwa: true }, '');
+        window.addEventListener('popstate', function(e) {
+          // Always push forward again — traps the back gesture inside the app
+          history.pushState({ pwa: true }, '');
+        });
+      })();
+    </script>
+  </head>
 
   <body>
     <script>
