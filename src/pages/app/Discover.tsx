@@ -578,7 +578,7 @@ export default function Discover() {
                             <img
                               src={photo}
                               alt={`${openPerson.first_name ?? "Member"} photo ${idx + 1}`}
-                              className="h-full w-full object-contain object-center no-snap"
+                              className="h-full w-full object-cover object-center no-snap"
                               onContextMenu={(e) => e.preventDefault()}
                             />
                           </div>
