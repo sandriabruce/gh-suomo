@@ -641,7 +641,11 @@ export default function Chat() {
         spicy_mode: isSpicyMode,
       };
       // Random "thinking" delay so seed replies feel human, not instant.
-      const delayMs = 3_000 + Math.floor(Math.random() * 5_000); // 3-8s
+      // Typing delay scales with reply length — short replies come fast, long ones take time
+      // Base: 3-6s. Add ~40ms per character (realistic typing speed ~25 WPM)
+      // Capped at 45s so it never feels broken
+      const baseDelay = 3_000 + Math.floor(Math.random() * 3_000);
+      const delayMs = Math.min(baseDelay, 45_000); // seed-response handles length-based delay server-side
       console.log("[seed-reply] scheduled in", Math.round(delayMs / 1000), "s →", url, payload);
       setSeedTyping(true);
       if (seedReplyTimerRef.current !== null) clearTimeout(seedReplyTimerRef.current);
