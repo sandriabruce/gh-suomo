@@ -554,7 +554,7 @@ export default function Chat() {
       const publicUrl = `https://bjfvmgymyfwgbzntcigj.supabase.co/storage/v1/object/public/profile-photos/${path}`;
       try {
         console.log("[transcribe] calling /api/transcribe with:", publicUrl);
-        const tr = await fetch("/api/transcribe", {
+        const tr = await fetch("https://ghsuomo.com/.netlify/functions/transcribe", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ audio_url: publicUrl }),
