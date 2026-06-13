@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/brand/Logo";
 import { CoupleCard, SAMPLE_COUPLES } from "@/components/brand/CoupleCard";
@@ -7,6 +8,16 @@ import { InstallBanner } from "@/components/pwa/InstallBanner";
 import { applySpicyRuntimeTheme, SPICY_MODE_STORAGE_KEY, SPICY_MODE_STORAGE_KEY_CANONICAL } from "@/lib/spicyRuntimeTheme";
 
 export default function Landing() {
+  const navigate = useNavigate();
+
+  // If user is already logged in, send them straight to the app
+  // This prevents the system back button from landing on the sign-in page
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) navigate("/app/discover", { replace: true });
+    });
+  }, [navigate]);
+
   // Always show brown on the landing page — never crimson
   useEffect(() => {
     try {
