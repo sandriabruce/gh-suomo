@@ -642,18 +642,15 @@ export default function Chat() {
         message_content: content,
         spicy_mode: isSpicyMode,
       };
-      // Random "thinking" delay so seed replies feel human, not instant.
-      // Typing delay scales with reply length — short replies come fast, long ones take time
-      // Base: 3-6s. Add ~40ms per character (realistic typing speed ~25 WPM)
-      // Capped at 45s so it never feels broken
-      const baseDelay = 3_000 + Math.floor(Math.random() * 3_000);
-      const delayMs = Math.min(baseDelay, 45_000); // seed-response handles length-based delay server-side
-      console.log("[seed-reply] scheduled in", Math.round(delayMs / 1000), "s →", url, payload);
+      // For voice: short 1-2s pause then fire immediately — voice note arrives async via seed-tts
+      // For text: 3-6s delay — server also adds length-based delay before inserting
+      const isVoiceReply = content.startsWith("[voice") || content === "[voice note]";
+      const delayMs = isVoiceReply
+        ? 1_000 + Math.floor(Math.random() * 1_000)
+        : 3_000 + Math.floor(Math.random() * 3_000);
+      console.log("[seed-reply] scheduled in", Math.round(delayMs / 1000), "s, voice:", isVoiceReply);
       setSeedTyping(true);
       if (seedReplyTimerRef.current !== null) clearTimeout(seedReplyTimerRef.current);
-      // Scale typing delay: ~35ms per character, min 4s, max 40s
-      // This will be refined after we get the actual reply length back
-      const estimatedDelay = Math.min(Math.max(4_000, delayMs), 40_000);
       seedReplyTimerRef.current = window.setTimeout(() => {
         seedReplyTimerRef.current = null;
         fetch(url, {
@@ -668,6 +665,11 @@ export default function Chat() {
             const text = await res.text().catch(() => "");
             console.log("[seed-reply] response", res.status, text);
             if (res.ok) {
+              // For voice: clear typing immediately — voice note will appear on its own in ~10s
+              // For text: keep typing until message appears via invalidateQueries
+              if (isVoiceReply) {
+                setSeedTyping(false);
+              }
               qc.invalidateQueries({ queryKey: ["messages", matchId] });
             } else {
               setSeedTyping(false);
