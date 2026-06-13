@@ -97,11 +97,14 @@
     </script>
     <div id="root"></div>
     <script>
-      // Register service worker for PWA
+      // Unregister all old service workers, then register new one
       if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for (var reg of registrations) { reg.unregister(); }
+        });
         window.addEventListener('load', function() {
           navigator.serviceWorker.register('/sw.js?v=5').then(function(reg) {
-            console.log('SW registered');
+            console.log('SW registered v5');
           }).catch(function(err) {
             console.log('SW failed:', err);
           });
