@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { markMatchRead, useUnreadMessages } from "@/hooks/useUnreadMessages";
 import { Card } from "@/components/ui/card";
 import { ProfileDetailSheet } from "@/components/profile/ProfileDetailSheet";
-import { useSpicyTheme } from "@/hooks/useSpicyTheme";
+import { useSpicyTheme, useIsSpicyModeActive } from "@/hooks/useSpicyTheme";
 
 const IMAGE_MSG_PREFIX = "[image]";
 const VOICE_MSG_PREFIX = "[voice]";
@@ -153,7 +153,7 @@ export default function Chat() {
     : null;
 
   // Spicy conversations inherit the luxury crimson + gold theme.
-  const isSpicyMode = localStorage.getItem('spicy_mode') === 'true';
+  const isSpicyMode = useIsSpicyModeActive();
   useSpicyTheme(isSpicyMode);
 
   const { data: otherProfile } = useQuery({
@@ -483,7 +483,7 @@ export default function Chat() {
         receiver_id,
         match_id: matchId,
         message_content: content,
-        spicy_mode: (user as any)?.plan === 'diamond' && localStorage.getItem('spicy_mode') === 'true',
+        spicy_mode: isSpicyMode,
       };
       // Random "thinking" delay so seed replies feel human, not instant.
       const delayMs = 3_000 + Math.floor(Math.random() * 5_000); // 3-8s
