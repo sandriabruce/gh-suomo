@@ -153,7 +153,8 @@ export default function Chat() {
     : null;
 
   // Spicy conversations inherit the luxury crimson + gold theme.
-  useSpicyTheme(false);
+  const isSpicyMode = localStorage.getItem('spicy_mode') === 'true';
+  useSpicyTheme(isSpicyMode);
 
   const { data: otherProfile } = useQuery({
     queryKey: ["chat-partner", otherUserId],
@@ -482,7 +483,7 @@ export default function Chat() {
         receiver_id,
         match_id: matchId,
         message_content: content,
-        spicy_mode: !!matchRow?.spicy,
+        spicy_mode: (user as any)?.plan === 'diamond' && localStorage.getItem('spicy_mode') === 'true',
       };
       // Random "thinking" delay so seed replies feel human, not instant.
       const delayMs = 3_000 + Math.floor(Math.random() * 5_000); // 3-8s
