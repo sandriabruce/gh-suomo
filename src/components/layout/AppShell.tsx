@@ -17,6 +17,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { computeTrial } from "@/features/trial/entitlements";
 import { toast } from "sonner";
 import { useUnreadMessages } from "@/hooks/useUnreadMessages";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { ErrorBoundary } from "@/components/layout/ErrorBoundary";
 
 const tabs = [
@@ -28,7 +29,8 @@ const tabs = [
 ];
 
 export function AppShell() {
-  const { isAdmin, signOut } = useAuth();
+  const { user, isAdmin, signOut } = useAuth();
+  usePushNotifications(user?.id ?? null);
   const navigate = useNavigate();
   const location = useLocation();
   const { data: profile, isLoading: profileLoading } = useProfile();
