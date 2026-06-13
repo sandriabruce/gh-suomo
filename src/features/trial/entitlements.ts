@@ -25,7 +25,7 @@ export const PLAN_LIMITS: Record<Plan, PlanLimits> = {
   explorer: { canChat: false, weeklyMatchLimit: null, verifiedBadge: false, concierge: false, priorityProfile: false, canMagic: false, canExplicit: false },
   verified: { canChat: true,  weeklyMatchLimit: null, verifiedBadge: true,  concierge: false, priorityProfile: false, canMagic: false, canExplicit: false },
   premium:  { canChat: true,  weeklyMatchLimit: null, verifiedBadge: true,  concierge: false, priorityProfile: false, canMagic: false, canExplicit: false },
-  diamond:  { canChat: true,  weeklyMatchLimit: null, verifiedBadge: true,  concierge: true,  priorityProfile: true,  canMagic: false, canExplicit: false },
+  diamond:  { canChat: true,  weeklyMatchLimit: null, verifiedBadge: true,  concierge: true,  priorityProfile: true,  canMagic: true,  canExplicit: false },
   magic:    { canChat: true,  weeklyMatchLimit: null, verifiedBadge: true,  concierge: true,  priorityProfile: true,  canMagic: true,  canExplicit: true  },
 };
 
