@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, TouchEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { SafetyBanner } from "@/components/safety/SafetyBanner";
@@ -52,6 +52,31 @@ function VoicePlayer({ content, mine }: { content: string; mine: boolean }) {
     }
   }, [content]);
 
+  function handleTouchStart(msgId: string, e: React.TouchEvent) {
+    swipeStartRef.current[msgId] = e.touches[0].clientX;
+  }
+
+  function handleTouchMove(msgId: string, mine: boolean, e: React.TouchEvent) {
+    const startX = swipeStartRef.current[msgId];
+    if (startX === undefined) return;
+    const dx = e.touches[0].clientX - startX;
+    // Only allow swipe in the correct direction
+    const swipe = mine ? Math.min(0, dx) : Math.max(0, dx); // mine: swipe left, theirs: swipe right
+    const clamped = Math.max(-60, Math.min(60, swipe));
+    setSwipeX(prev => ({ ...prev, [msgId]: clamped }));
+  }
+
+  function handleTouchEnd(msgId: string, content: string, mine: boolean) {
+    const offset = swipeX[msgId] ?? 0;
+    if (Math.abs(offset) > 35) {
+      setReplyTo({ id: msgId, content, mine });
+      // Haptic feedback
+      if (navigator.vibrate) navigator.vibrate(30);
+    }
+    setSwipeX(prev => ({ ...prev, [msgId]: 0 }));
+    delete swipeStartRef.current[msgId];
+  }
+
   return (
     <div className={`max-w-[80%] rounded-2xl px-3 py-2 ${mine ? "bg-ghana-gold" : "bg-muted"}`}>
       {src
@@ -80,6 +105,9 @@ export default function Chat() {
   const [sending, setSending] = useState(false);
   const [seedTyping, setSeedTyping] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [replyTo, setReplyTo] = useState<{ id: string; content: string; mine: boolean } | null>(null);
+  const [swipeX, setSwipeX] = useState<Record<string, number>>({});
+  const swipeStartRef = useRef<Record<string, number>>({});
   const [profileOpen, setProfileOpen] = useState(false);
   const [recording, setRecording] = useState(false);
   const [recordingSecs, setRecordingSecs] = useState(0);
@@ -126,7 +154,32 @@ export default function Chat() {
             .eq("match_id", matchId!)
             .order("created_at", { ascending: true });
           if (retry.error) throw retry.error;
-          return (retry.data ?? []).map((m) => ({ ...m, read_at: null }));
+          function handleTouchStart(msgId: string, e: React.TouchEvent) {
+    swipeStartRef.current[msgId] = e.touches[0].clientX;
+  }
+
+  function handleTouchMove(msgId: string, mine: boolean, e: React.TouchEvent) {
+    const startX = swipeStartRef.current[msgId];
+    if (startX === undefined) return;
+    const dx = e.touches[0].clientX - startX;
+    // Only allow swipe in the correct direction
+    const swipe = mine ? Math.min(0, dx) : Math.max(0, dx); // mine: swipe left, theirs: swipe right
+    const clamped = Math.max(-60, Math.min(60, swipe));
+    setSwipeX(prev => ({ ...prev, [msgId]: clamped }));
+  }
+
+  function handleTouchEnd(msgId: string, content: string, mine: boolean) {
+    const offset = swipeX[msgId] ?? 0;
+    if (Math.abs(offset) > 35) {
+      setReplyTo({ id: msgId, content, mine });
+      // Haptic feedback
+      if (navigator.vibrate) navigator.vibrate(30);
+    }
+    setSwipeX(prev => ({ ...prev, [msgId]: 0 }));
+    delete swipeStartRef.current[msgId];
+  }
+
+  return (retry.data ?? []).map((m) => ({ ...m, read_at: null }));
         }
         throw error;
       }
@@ -186,7 +239,32 @@ export default function Chat() {
 
   // Cancel any scheduled seed reply when the user leaves this chat.
   useEffect(() => {
-    return () => {
+    function handleTouchStart(msgId: string, e: React.TouchEvent) {
+    swipeStartRef.current[msgId] = e.touches[0].clientX;
+  }
+
+  function handleTouchMove(msgId: string, mine: boolean, e: React.TouchEvent) {
+    const startX = swipeStartRef.current[msgId];
+    if (startX === undefined) return;
+    const dx = e.touches[0].clientX - startX;
+    // Only allow swipe in the correct direction
+    const swipe = mine ? Math.min(0, dx) : Math.max(0, dx); // mine: swipe left, theirs: swipe right
+    const clamped = Math.max(-60, Math.min(60, swipe));
+    setSwipeX(prev => ({ ...prev, [msgId]: clamped }));
+  }
+
+  function handleTouchEnd(msgId: string, content: string, mine: boolean) {
+    const offset = swipeX[msgId] ?? 0;
+    if (Math.abs(offset) > 35) {
+      setReplyTo({ id: msgId, content, mine });
+      // Haptic feedback
+      if (navigator.vibrate) navigator.vibrate(30);
+    }
+    setSwipeX(prev => ({ ...prev, [msgId]: 0 }));
+    delete swipeStartRef.current[msgId];
+  }
+
+  return () => {
       if (seedReplyTimerRef.current !== null) {
         clearTimeout(seedReplyTimerRef.current);
         seedReplyTimerRef.current = null;
@@ -245,7 +323,32 @@ export default function Chat() {
         }
       );
     channel.subscribe();
-    return () => {
+    function handleTouchStart(msgId: string, e: React.TouchEvent) {
+    swipeStartRef.current[msgId] = e.touches[0].clientX;
+  }
+
+  function handleTouchMove(msgId: string, mine: boolean, e: React.TouchEvent) {
+    const startX = swipeStartRef.current[msgId];
+    if (startX === undefined) return;
+    const dx = e.touches[0].clientX - startX;
+    // Only allow swipe in the correct direction
+    const swipe = mine ? Math.min(0, dx) : Math.max(0, dx); // mine: swipe left, theirs: swipe right
+    const clamped = Math.max(-60, Math.min(60, swipe));
+    setSwipeX(prev => ({ ...prev, [msgId]: clamped }));
+  }
+
+  function handleTouchEnd(msgId: string, content: string, mine: boolean) {
+    const offset = swipeX[msgId] ?? 0;
+    if (Math.abs(offset) > 35) {
+      setReplyTo({ id: msgId, content, mine });
+      // Haptic feedback
+      if (navigator.vibrate) navigator.vibrate(30);
+    }
+    setSwipeX(prev => ({ ...prev, [msgId]: 0 }));
+    delete swipeStartRef.current[msgId];
+  }
+
+  return () => {
       seedClient.removeChannel(channel);
     };
   }, [matchId, qc]);
@@ -269,7 +372,32 @@ export default function Chat() {
   }
 
   if (!matchLoading && !matchRow) {
-    return (
+    function handleTouchStart(msgId: string, e: React.TouchEvent) {
+    swipeStartRef.current[msgId] = e.touches[0].clientX;
+  }
+
+  function handleTouchMove(msgId: string, mine: boolean, e: React.TouchEvent) {
+    const startX = swipeStartRef.current[msgId];
+    if (startX === undefined) return;
+    const dx = e.touches[0].clientX - startX;
+    // Only allow swipe in the correct direction
+    const swipe = mine ? Math.min(0, dx) : Math.max(0, dx); // mine: swipe left, theirs: swipe right
+    const clamped = Math.max(-60, Math.min(60, swipe));
+    setSwipeX(prev => ({ ...prev, [msgId]: clamped }));
+  }
+
+  function handleTouchEnd(msgId: string, content: string, mine: boolean) {
+    const offset = swipeX[msgId] ?? 0;
+    if (Math.abs(offset) > 35) {
+      setReplyTo({ id: msgId, content, mine });
+      // Haptic feedback
+      if (navigator.vibrate) navigator.vibrate(30);
+    }
+    setSwipeX(prev => ({ ...prev, [msgId]: 0 }));
+    delete swipeStartRef.current[msgId];
+  }
+
+  return (
       <div className="space-y-4">
         <SafetyBanner variant="warn" message="Never share phone numbers, WhatsApp, or money requests. Report anything suspicious." />
         <h1 className="heading-gold font-display text-2xl font-bold">Conversation unavailable</h1>
@@ -519,6 +647,31 @@ export default function Chat() {
     }
   }
 
+  function handleTouchStart(msgId: string, e: React.TouchEvent) {
+    swipeStartRef.current[msgId] = e.touches[0].clientX;
+  }
+
+  function handleTouchMove(msgId: string, mine: boolean, e: React.TouchEvent) {
+    const startX = swipeStartRef.current[msgId];
+    if (startX === undefined) return;
+    const dx = e.touches[0].clientX - startX;
+    // Only allow swipe in the correct direction
+    const swipe = mine ? Math.min(0, dx) : Math.max(0, dx); // mine: swipe left, theirs: swipe right
+    const clamped = Math.max(-60, Math.min(60, swipe));
+    setSwipeX(prev => ({ ...prev, [msgId]: clamped }));
+  }
+
+  function handleTouchEnd(msgId: string, content: string, mine: boolean) {
+    const offset = swipeX[msgId] ?? 0;
+    if (Math.abs(offset) > 35) {
+      setReplyTo({ id: msgId, content, mine });
+      // Haptic feedback
+      if (navigator.vibrate) navigator.vibrate(30);
+    }
+    setSwipeX(prev => ({ ...prev, [msgId]: 0 }));
+    delete swipeStartRef.current[msgId];
+  }
+
   return (
     <div className="flex flex-col gap-3">
       <SafetyBanner variant="warn" message="Never share phone numbers, WhatsApp, or money requests. Report anything suspicious." />
@@ -573,8 +726,44 @@ export default function Chat() {
             const isLastReadMine =
               mine && !!m.read_at &&
               !arr.slice(i + 1).some((n) => n.sender_id === user?.id && n.read_at);
-            return (
-              <div key={m.id} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>
+            function handleTouchStart(msgId: string, e: React.TouchEvent) {
+    swipeStartRef.current[msgId] = e.touches[0].clientX;
+  }
+
+  function handleTouchMove(msgId: string, mine: boolean, e: React.TouchEvent) {
+    const startX = swipeStartRef.current[msgId];
+    if (startX === undefined) return;
+    const dx = e.touches[0].clientX - startX;
+    // Only allow swipe in the correct direction
+    const swipe = mine ? Math.min(0, dx) : Math.max(0, dx); // mine: swipe left, theirs: swipe right
+    const clamped = Math.max(-60, Math.min(60, swipe));
+    setSwipeX(prev => ({ ...prev, [msgId]: clamped }));
+  }
+
+  function handleTouchEnd(msgId: string, content: string, mine: boolean) {
+    const offset = swipeX[msgId] ?? 0;
+    if (Math.abs(offset) > 35) {
+      setReplyTo({ id: msgId, content, mine });
+      // Haptic feedback
+      if (navigator.vibrate) navigator.vibrate(30);
+    }
+    setSwipeX(prev => ({ ...prev, [msgId]: 0 }));
+    delete swipeStartRef.current[msgId];
+  }
+
+  return (
+              <div key={m.id} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}
+                onTouchStart={(e) => handleTouchStart(m.id, e)}
+                onTouchMove={(e) => handleTouchMove(m.id, mine, e)}
+                onTouchEnd={() => handleTouchEnd(m.id, m.content, mine)}
+                style={{ transform: `translateX(${swipeX[m.id] ?? 0}px)`, transition: swipeX[m.id] ? 'none' : 'transform 0.2s ease' }}
+              >
+                {/* Reply swipe indicator */}
+                {Math.abs(swipeX[m.id] ?? 0) > 10 && (
+                  <div className={`absolute ${mine ? "left-2" : "right-2"} top-1/2 -translate-y-1/2 text-ghana-gold opacity-${Math.min(100, Math.round(Math.abs(swipeX[m.id] ?? 0) / 60 * 100))}`}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg>
+                  </div>
+                )}
                 {isImageMessage(m.content) ? (
                   <a
                     href={imageUrlFrom(m.content)}
@@ -619,6 +808,19 @@ export default function Chat() {
         )}
       </div>
 
+      {replyTo && (
+        <div className="flex items-center gap-2 rounded-xl border border-ghana-gold/40 bg-ghana-gold/10 px-3 py-2 mx-1 mb-1">
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-semibold text-ghana-gold mb-0.5">{replyTo.mine ? "You" : partnerName}</p>
+            <p className="text-xs text-muted-foreground truncate">
+              {replyTo.content.startsWith("[voice") || replyTo.content === "[voice note]" ? "🎤 Voice note" : replyTo.content.slice(0, 60)}
+            </p>
+          </div>
+          <button onClick={() => setReplyTo(null)} className="text-muted-foreground hover:text-foreground shrink-0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      )}
       {overFreeLimit ? (
         <div className="rounded-2xl border-2 border-ghana-gold/50 bg-gradient-to-br from-ghana-gold/15 via-background to-ghana-red/10 p-5 text-center">
           <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-ghana-gold text-ghana-brown">
@@ -774,6 +976,31 @@ function ChatList() {
     },
   });
 
+  function handleTouchStart(msgId: string, e: React.TouchEvent) {
+    swipeStartRef.current[msgId] = e.touches[0].clientX;
+  }
+
+  function handleTouchMove(msgId: string, mine: boolean, e: React.TouchEvent) {
+    const startX = swipeStartRef.current[msgId];
+    if (startX === undefined) return;
+    const dx = e.touches[0].clientX - startX;
+    // Only allow swipe in the correct direction
+    const swipe = mine ? Math.min(0, dx) : Math.max(0, dx); // mine: swipe left, theirs: swipe right
+    const clamped = Math.max(-60, Math.min(60, swipe));
+    setSwipeX(prev => ({ ...prev, [msgId]: clamped }));
+  }
+
+  function handleTouchEnd(msgId: string, content: string, mine: boolean) {
+    const offset = swipeX[msgId] ?? 0;
+    if (Math.abs(offset) > 35) {
+      setReplyTo({ id: msgId, content, mine });
+      // Haptic feedback
+      if (navigator.vibrate) navigator.vibrate(30);
+    }
+    setSwipeX(prev => ({ ...prev, [msgId]: 0 }));
+    delete swipeStartRef.current[msgId];
+  }
+
   return (
     <div className="space-y-4">
       <SafetyBanner variant="warn" message="Never share phone numbers, WhatsApp, or money requests. Report anything suspicious." />
@@ -794,7 +1021,32 @@ function ChatList() {
             const lastPreview = c.last
               ? (isImageMessage(c.last.content) ? "📷 Photo" : c.last.content)
               : "Say hello 👋";
-            return (
+            function handleTouchStart(msgId: string, e: React.TouchEvent) {
+    swipeStartRef.current[msgId] = e.touches[0].clientX;
+  }
+
+  function handleTouchMove(msgId: string, mine: boolean, e: React.TouchEvent) {
+    const startX = swipeStartRef.current[msgId];
+    if (startX === undefined) return;
+    const dx = e.touches[0].clientX - startX;
+    // Only allow swipe in the correct direction
+    const swipe = mine ? Math.min(0, dx) : Math.max(0, dx); // mine: swipe left, theirs: swipe right
+    const clamped = Math.max(-60, Math.min(60, swipe));
+    setSwipeX(prev => ({ ...prev, [msgId]: clamped }));
+  }
+
+  function handleTouchEnd(msgId: string, content: string, mine: boolean) {
+    const offset = swipeX[msgId] ?? 0;
+    if (Math.abs(offset) > 35) {
+      setReplyTo({ id: msgId, content, mine });
+      // Haptic feedback
+      if (navigator.vibrate) navigator.vibrate(30);
+    }
+    setSwipeX(prev => ({ ...prev, [msgId]: 0 }));
+    delete swipeStartRef.current[msgId];
+  }
+
+  return (
               <button
                 key={c.id}
                 type="button"
