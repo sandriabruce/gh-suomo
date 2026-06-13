@@ -1,14 +1,11 @@
-import { useEffect } from "react";
-import { seedClient } from "@/integrations/supabase/seedClient";
-import { useAuth } from "@/hooks/useAuth";
+import { useEffect, useRef } from 'react';
+import { seedClient } from '@/integrations/supabase/seedClient';
 
-// VAPID public key — generate your own at https://vapidkeys.com
-// This is a placeholder — replace with your actual VAPID public key
-const VAPID_PUBLIC_KEY = "BMtI--XneNQ-QxgQHd3-8eDsj8WW1LK8jTSsFmaN-Odo3CsfK9Ch28U3c5kEfZLWgvwAjWcv8y0EkADOk750uag";
+const VAPID_PUBLIC_KEY = 'BHVaVerG_C9eC7FhXvREtK1gBOeLnf2w28v3bzZ2uRVcr-mtCmohPGGPCqOp2zIMn95Xvzt0eTGiPJLnzfvUufY';
 
-function urlBase64ToUint8Array(base64String: string) {
-  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
   const rawData = window.atob(base64);
   const outputArray = new Uint8Array(rawData.length);
   for (let i = 0; i < rawData.length; ++i) {
@@ -17,58 +14,68 @@ function urlBase64ToUint8Array(base64String: string) {
   return outputArray;
 }
 
-export function usePushNotifications() {
-  const { user } = useAuth();
+export function usePushNotifications(userId: string | null) {
+  const registered = useRef(false);
 
   useEffect(() => {
-    if (!user) return;
-    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return;
+    if (!userId || registered.current) return;
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
 
-    async function subscribe() {
+    const register = async () => {
       try {
-        const reg = await navigator.serviceWorker.ready;
-        
-        // Check existing subscription
-        const existing = await reg.pushManager.getSubscription();
+        const currentPermission = Notification.permission;
+        if (currentPermission === 'denied') return;
+
+        const registration = await navigator.serviceWorker.ready;
+
+        const existing = await registration.pushManager.getSubscription();
         if (existing) {
-          // Already subscribed — save/update in DB
-          await saveSubscription(user!.id, existing);
+          await saveSubscription(existing, userId);
+          registered.current = true;
           return;
         }
 
-        // Request permission
-        const permission = await Notification.requestPermission();
-        if (permission !== "granted") return;
+        if (currentPermission !== 'granted') {
+          const permission = await Notification.requestPermission();
+          if (permission !== 'granted') return;
+        }
 
-        // Subscribe to push
-        const subscription = await reg.pushManager.subscribe({
+        const subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
           applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
         });
 
-        await saveSubscription(user!.id, subscription);
+        await saveSubscription(subscription, userId);
+        registered.current = true;
       } catch (err) {
-        console.error("Push subscription error:", err);
+        console.error('[Push] Registration failed:', err);
       }
-    }
+    };
 
-    // Delay slightly to not block app startup
-    const timer = setTimeout(subscribe, 3000);
+    const timer = setTimeout(register, 3000);
     return () => clearTimeout(timer);
-  }, [user?.id]);
+  }, [userId]);
 }
 
-async function saveSubscription(userId: string, subscription: PushSubscription) {
+async function saveSubscription(subscription: PushSubscription, userId: string) {
   try {
-    const sub = subscription.toJSON();
-    await seedClient.from("push_subscriptions").upsert({
-      user_id: userId,
-      endpoint: sub.endpoint,
-      p256dh: sub.keys?.p256dh,
-      auth: sub.keys?.auth,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: "user_id,endpoint" });
+    const { data: { session } } = await seedClient.auth.getSession();
+    if (!session?.access_token) return;
+
+    const subJson = subscription.toJSON();
+
+    await fetch(
+      'https://bjfvmgymyfwgbzntcigj.supabase.co/functions/v1/save-push-subscription',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({ subscription: subJson }),
+      }
+    );
   } catch (err) {
-    console.error("Failed to save push subscription:", err);
+    console.error('[Push] Save subscription failed:', err);
   }
 }
