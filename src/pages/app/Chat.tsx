@@ -550,33 +550,30 @@ export default function Chat() {
       setAudioUrl(null);
       audioChunksRef.current = [];
 
-      // Transcribe browser-side — calls OpenAI Whisper directly, no egress restrictions
-      const openaiKey = import.meta.env.VITE_OPENAI_API_KEY;
-      if (openaiKey && blob.size > 500) {
-        try {
-          const form = new FormData();
-          form.append("file", blob, `audio.${ext}`);
-          form.append("model", "whisper-1");
-          form.append("language", "en");
-          const wr = await fetch("https://api.openai.com/v1/audio/transcriptions", {
-            method: "POST",
-            headers: { Authorization: `Bearer ${openaiKey}` },
-            body: form,
-          });
-          if (wr.ok) {
-            const d = await wr.json();
-            if (d.text?.trim()) {
-              triggerSeedReply(`[voice] ${d.text.trim()}`);
-              return;
-            }
-          } else {
-            console.warn("[transcribe] Whisper error:", wr.status);
+      // Transcribe via Netlify function — no egress restrictions, reaches OpenAI freely
+      const publicUrl = `https://bjfvmgymyfwgbzntcigj.supabase.co/storage/v1/object/public/profile-photos/${path}`;
+      try {
+        console.log("[transcribe] calling /api/transcribe with:", publicUrl);
+        const tr = await fetch("/.netlify/functions/transcribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ audio_url: publicUrl }),
+        });
+        console.log("[transcribe] status:", tr.status);
+        if (tr.ok) {
+          const d = await tr.json();
+          console.log("[transcribe] result:", d.transcript?.slice(0, 80));
+          if (d.transcript) {
+            triggerSeedReply(`[voice] ${d.transcript}`);
+            return;
           }
-        } catch (e) {
-          console.warn("[transcribe] failed:", e);
+        } else {
+          console.warn("[transcribe] failed:", tr.status, await tr.text());
         }
+      } catch (e) {
+        console.warn("[transcribe] error:", e);
       }
-      // Fallback if transcription fails or no key
+      // Fallback
       triggerSeedReply("[voice note]");
     } catch (e) {
       toast.error("Voice note not sent.");
