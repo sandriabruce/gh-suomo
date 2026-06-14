@@ -108,6 +108,10 @@ export default function Chat() {
   const [replyTo, setReplyTo] = useState<{ id: string; content: string; mine: boolean } | null>(null);
   const [swipeX, setSwipeX] = useState<Record<string, number>>({});
   const swipeStartRef = useRef<Record<string, number>>({});
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
+  const longPressTimerRef = useRef<number | null>(null);
+  const longPressFiredRef = useRef(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [recording, setRecording] = useState(false);
   const [recordingSecs, setRecordingSecs] = useState(0);
@@ -419,6 +423,23 @@ export default function Chat() {
     if (!content) return;
     const ok = await sendContent(content);
     if (ok) triggerSeedReply(content);
+  }
+
+  async function deleteMessage(id: string) {
+    setDeleting(true);
+    try {
+      const { error } = await seedClient.from("messages").delete().eq("id", id);
+      if (error) throw error;
+      qc.setQueryData<ChatMessage[]>(["messages", matchId], (old) =>
+        (old ?? []).filter((m) => m.id !== id)
+      );
+      if (replyTo?.id === id) setReplyTo(null);
+    } catch (e: any) {
+      toast.error(e?.message ? `Couldn't delete: ${e.message}` : "Couldn't delete message");
+    } finally {
+      setDeleting(false);
+      setDeleteTarget(null);
+    }
   }
 
   async function sendContent(content: string): Promise<boolean> {
@@ -764,11 +785,36 @@ export default function Chat() {
     delete swipeStartRef.current[msgId];
   }
 
+  // Long-press (mobile) / right-click (desktop) on your own messages to delete them.
+  function handleLongPressStart(msgId: string, mine: boolean) {
+    if (!mine) return;
+    longPressFiredRef.current = false;
+    longPressTimerRef.current = window.setTimeout(() => {
+      longPressFiredRef.current = true;
+      if (navigator.vibrate) navigator.vibrate(30);
+      setDeleteTarget(msgId);
+    }, 500);
+  }
+
+  function handleLongPressEnd() {
+    if (longPressTimerRef.current) {
+      window.clearTimeout(longPressTimerRef.current);
+      longPressTimerRef.current = null;
+    }
+  }
+
   return (
               <div key={m.id} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}
-                onTouchStart={(e) => handleTouchStart(m.id, e)}
-                onTouchMove={(e) => handleTouchMove(m.id, mine, e)}
-                onTouchEnd={() => handleTouchEnd(m.id, m.content, mine)}
+                onTouchStart={(e) => { handleTouchStart(m.id, e); handleLongPressStart(m.id, mine); }}
+                onTouchMove={(e) => { handleTouchMove(m.id, mine, e); handleLongPressEnd(); }}
+                onTouchEnd={() => {
+                  handleLongPressEnd();
+                  if (!longPressFiredRef.current) handleTouchEnd(m.id, m.content, mine);
+                }}
+                onMouseDown={() => handleLongPressStart(m.id, mine)}
+                onMouseUp={handleLongPressEnd}
+                onMouseLeave={handleLongPressEnd}
+                onContextMenu={(e) => { if (mine) { e.preventDefault(); setDeleteTarget(m.id); } }}
                 style={{ transform: `translateX(${swipeX[m.id] ?? 0}px)`, transition: swipeX[m.id] ? 'none' : 'transform 0.2s ease' }}
               >
                 {/* Reply swipe indicator */}
@@ -820,6 +866,34 @@ export default function Chat() {
           </div>
         )}
       </div>
+
+      {deleteTarget && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6"
+          onClick={() => !deleting && setDeleteTarget(null)}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border bg-background p-5 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="text-sm font-semibold text-foreground mb-1">Delete this message?</p>
+            <p className="text-xs text-muted-foreground mb-4">This removes it from the conversation and can't be undone.</p>
+            <div className="flex gap-2">
+              <Button variant="outline" className="flex-1" onClick={() => setDeleteTarget(null)} disabled={deleting}>
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                className="flex-1"
+                onClick={() => deleteMessage(deleteTarget)}
+                disabled={deleting}
+              >
+                {deleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {replyTo && (
         <div className="flex items-center gap-2 rounded-xl border border-ghana-gold/40 bg-ghana-gold/10 px-3 py-2 mx-1 mb-1">
