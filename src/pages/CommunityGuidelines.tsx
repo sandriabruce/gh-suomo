@@ -10,7 +10,7 @@ export default function CommunityGuidelines() {
       </header>
       <main className="mx-auto max-w-4xl px-4 py-10 prose prose-sm">
         <h1 className="font-display text-3xl font-bold text-ghana-brown mb-2">Community Guidelines and Content Moderation Policy</h1>
-        <p className="text-muted-foreground text-sm mb-8">Last updated: 24 May 2026 · Pending review by legal counsel · Subject to change</p>
+        <p className="text-muted-foreground text-sm mb-8">Last updated: 14 June 2026</p>
 
         <p className="text-base">GH SUƆMƆ is built on the values of respect, honesty, and dignity. These guidelines define what behaviour is and is not acceptable on our Platform. We expect every member to uphold them.</p>
 
@@ -95,7 +95,7 @@ export default function CommunityGuidelines() {
           <li>GH SUƆMƆ will never ask for your password or payment details outside the official app.</li>
         </ul>
 
-        <p className="text-xs text-muted-foreground mt-12 pt-6 border-t">Pending final legal review. Subject to change.</p>
+        <p className="text-xs text-muted-foreground mt-12 pt-6 border-t">Questions about these guidelines? Contact us at hello@ghsuomo.com.</p>
       </main>
     </div>
   );

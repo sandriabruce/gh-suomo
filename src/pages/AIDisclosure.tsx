@@ -10,7 +10,7 @@ export default function AIDisclosure() {
       </header>
       <main className="mx-auto max-w-4xl px-4 py-10 prose prose-sm">
         <h1 className="font-display text-3xl font-bold text-ghana-brown mb-2">AI Disclosure Notice</h1>
-        <p className="text-muted-foreground text-sm mb-8">Last updated: 24 May 2026 · Pending review by legal counsel · Subject to change</p>
+        <p className="text-muted-foreground text-sm mb-8">Last updated: 14 June 2026</p>
 
         <p className="text-base font-medium">GH SUƆMƆ uses artificial intelligence in several parts of the service. This notice explains exactly where and how AI is used so you can make informed decisions.</p>
 
@@ -56,7 +56,7 @@ export default function AIDisclosure() {
         </ul>
         <p>Contact us at <a href="mailto:ai@ghsuomo.com">ai@ghsuomo.com</a> with any AI-related questions or concerns.</p>
 
-        <p className="text-xs text-muted-foreground mt-12 pt-6 border-t">Pending final legal review. Subject to change.</p>
+        <p className="text-xs text-muted-foreground mt-12 pt-6 border-t">If anything in this notice is unclear, contact us at ai@ghsuomo.com.</p>
       </main>
     </div>
   );

@@ -40,7 +40,12 @@ type SpicyCandidate = {
 const SPICY_AGE_CONSENT_KEY = "spicy-mode:age-consent:v1";
 
 function mapSpicy(row: Record<string, unknown>): SpicyCandidate {
-  const photos = Array.isArray(row.spicy_photos) ? (row.spicy_photos as string[]) : [];
+  const spicyPhotos = Array.isArray(row.spicy_photos) ? (row.spicy_photos as string[]) : [];
+  const regularPhotos = Array.isArray(row.photos) ? (row.photos as string[]) : [];
+  // Spicy Mode reuses each member's regular photos by default, paired with a
+  // bolder bio/prompts. Most members (40+) won't upload separate "spicy"
+  // photos, and that's expected — spicy_photos is an optional override only.
+  const photos = spicyPhotos.length > 0 ? spicyPhotos : regularPhotos;
   const prompts = Array.isArray(row.spicy_prompts)
     ? ((row.spicy_prompts as unknown[]).filter(
         (p): p is { q: string; a: string } =>
@@ -94,13 +99,14 @@ export default function Spicy() {
     queryFn: async () => {
       const { data, error } = await seedClient
         .from("profiles")
-        .select("id, first_name, age, location, spicy_bio, spicy_photos, spicy_prompts, gender, is_seed")
+        .select("id, first_name, age, location, photos, spicy_bio, spicy_photos, spicy_prompts, gender, is_seed")
         .eq("is_seed", true)
         .in("gender", targetGenders)
         .limit(60);
       if (error) throw error;
       return (data ?? [])
         .map(mapSpicy)
+        // Exclude only profiles with no photos at all (neither spicy nor regular).
         .filter((c) => c.spicy_photos.length > 0);
     },
   });

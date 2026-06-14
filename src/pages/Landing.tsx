@@ -126,7 +126,7 @@ export default function Landing() {
             <a href="mailto:hello@ghsuomo.com" className="hover:text-ghana-gold transition-colors">Contact</a>
           </div>
           <p className="mt-4 text-center text-[11px] text-muted-foreground/60">
-            © {new Date().getFullYear()} GH SUƆMƆ. All rights reserved. · For Ghanaians 35+ worldwide. · Documents pending final legal review.
+            © {new Date().getFullYear()} GH SUƆMƆ. All rights reserved. · For Ghanaians 35+ worldwide.
           </p>
         </div>
       </footer>

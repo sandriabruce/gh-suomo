@@ -10,7 +10,7 @@ export default function TermsOfService() {
       </header>
       <main className="mx-auto max-w-4xl px-4 py-10 prose prose-sm">
         <h1 className="font-display text-3xl font-bold text-ghana-brown mb-2">Terms of Service</h1>
-        <p className="text-muted-foreground text-sm mb-8">Last updated: 24 May 2026 · Pending review by legal counsel · Subject to change</p>
+        <p className="text-muted-foreground text-sm mb-8">Last updated: 14 June 2026</p>
 
         <h2>1. About GH SUƆMƆ</h2>
         <p>GH SUƆMƆ ("the Platform", "we", "us", "our") is a dating and social connection service operated by [Company Name TBC] ("the Company"), registered in [Jurisdiction TBC]. The Platform is designed exclusively for Ghanaian adults aged 35 and above, including members of the Ghanaian diaspora worldwide.</p>
@@ -104,7 +104,7 @@ export default function TermsOfService() {
         <h2>13. Contact</h2>
         <p>For questions about these Terms, contact us at: <a href="mailto:legal@ghsuomo.com">legal@ghsuomo.com</a></p>
 
-        <p className="text-xs text-muted-foreground mt-12 pt-6 border-t">These Terms are pending final review by legal counsel and are subject to change. The version currently in force is the most recently dated version on this page.</p>
+        <p className="text-xs text-muted-foreground mt-12 pt-6 border-t">The version currently in force is the most recently dated version on this page.</p>
       </main>
     </div>
   );

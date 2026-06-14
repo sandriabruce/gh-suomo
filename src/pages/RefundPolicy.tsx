@@ -10,7 +10,7 @@ export default function RefundPolicy() {
       </header>
       <main className="mx-auto max-w-4xl px-4 py-10 prose prose-sm">
         <h1 className="font-display text-3xl font-bold text-ghana-brown mb-2">Refund and Cancellation Policy</h1>
-        <p className="text-muted-foreground text-sm mb-8">Last updated: 24 May 2026 · Pending review by legal counsel · Subject to change</p>
+        <p className="text-muted-foreground text-sm mb-8">Last updated: 14 June 2026</p>
 
         <h2>1. Subscription Cancellation</h2>
         <p>You may cancel your GH SUƆMƆ subscription at any time. Cancellation takes effect at the end of your current billing period. You will retain access to your plan's features until that date.</p>
@@ -50,7 +50,7 @@ export default function RefundPolicy() {
         <h2>7. Contact</h2>
         <p>Billing enquiries: <a href="mailto:billing@ghsuomo.com">billing@ghsuomo.com</a></p>
 
-        <p className="text-xs text-muted-foreground mt-12 pt-6 border-t">Pending final legal review. Subject to change.</p>
+        <p className="text-xs text-muted-foreground mt-12 pt-6 border-t">Questions about refunds? Contact us at billing@ghsuomo.com.</p>
       </main>
     </div>
   );

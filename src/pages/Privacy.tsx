@@ -10,7 +10,7 @@ export default function PrivacyPolicy() {
       </header>
       <main className="mx-auto max-w-4xl px-4 py-10 prose prose-sm">
         <h1 className="font-display text-3xl font-bold text-ghana-brown mb-2">Privacy Policy</h1>
-        <p className="text-muted-foreground text-sm mb-8">Last updated: 24 May 2026 · Pending review by legal counsel · Subject to change</p>
+        <p className="text-muted-foreground text-sm mb-8">Last updated: 14 June 2026</p>
 
         <p>GH SUƆMƆ takes your privacy seriously. This Privacy Policy explains what personal data we collect, how we use it, and your rights.</p>
 
@@ -94,7 +94,7 @@ export default function PrivacyPolicy() {
         <h2>12. Contact</h2>
         <p>Data protection enquiries: <a href="mailto:privacy@ghsuomo.com">privacy@ghsuomo.com</a></p>
 
-        <p className="text-xs text-muted-foreground mt-12 pt-6 border-t">Pending final legal review. Subject to change.</p>
+        <p className="text-xs text-muted-foreground mt-12 pt-6 border-t">Questions about this policy? Contact us at privacy@ghsuomo.com.</p>
       </main>
     </div>
   );
