@@ -63,6 +63,21 @@ type Candidate = {
   spicy_prompts: { q: string; a: string }[];
 };
 
+// Deterministic daily shuffle — same order within a day, rotates each day.
+// Uses user ID + current UTC day as seed so each user gets a unique rotation.
+function dailyShuffle<T>(arr: T[], userId: string): T[] {
+  const day = Math.floor(Date.now() / 86400000);
+  let seed = day;
+  for (let i = 0; i < userId.length; i++) seed = (seed * 31 + userId.charCodeAt(i)) >>> 0;
+  const out = [...arr];
+  for (let i = out.length - 1; i > 0; i--) {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    const j = seed % (i + 1);
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
 const PAGE_SIZE = 20;
 
 function mapRow(row: Record<string, unknown>): Candidate {
@@ -199,28 +214,39 @@ export default function Discover() {
     getNextPageParam: (last: Candidate[], all) =>
       last.length < PAGE_SIZE ? undefined : all.length,
     queryFn: async ({ pageParam }) => {
-      const from = (pageParam as number) * PAGE_SIZE;
-      const to = from + PAGE_SIZE - 1;
-      // Diamond and Scorching (magic) users see all seeds; everyone else sees Sweet (explorer) only
+      const pageNum = pageParam as number;
       const canSeeSpicySeeds = plan === "diamond" || plan === "magic";
-      let query = seedClient
-        .from("profiles")
-        .select("id, first_name, age, location, bio, photos, verified, interests, prompts, ethnicity, spicy_bio, spicy_photos, spicy_prompts")
-        .eq("is_seed", true)
-        .in("gender", targetGenders)
-        .neq("banned", true)
-        .order("id", { ascending: true })
-        .range(from, to);
-      if (!canSeeSpicySeeds) {
-        query = (query as any).eq("min_tier", "explorer");
+
+      // On first page: fetch all seeds, shuffle them daily, cache the order.
+      // On subsequent pages: slice from the cached shuffled list.
+      const CACHE_KEY = cacheKey(targetGenders) + ":shuffled";
+      if (pageNum === 0) {
+        let query = seedClient
+          .from("profiles")
+          .select("id, first_name, age, location, bio, photos, verified, interests, prompts, ethnicity, spicy_bio, spicy_photos, spicy_prompts")
+          .eq("is_seed", true)
+          .in("gender", targetGenders)
+          .neq("banned", true)
+          .limit(200); // fetch all — max 106 seeds
+        if (!canSeeSpicySeeds) {
+          query = (query as any).eq("min_tier", "explorer");
+        }
+        const { data, error } = await query;
+        if (error) throw error;
+        const shuffled = dailyShuffle((data ?? []).map(mapRow), user?.id ?? "anon");
+        try { localStorage.setItem(CACHE_KEY, JSON.stringify(shuffled)); } catch { /* ignore */ }
+        return shuffled.slice(0, PAGE_SIZE);
+      } else {
+        // Subsequent pages — read from cached shuffled list
+        try {
+          const raw = localStorage.getItem(CACHE_KEY);
+          if (raw) {
+            const all = JSON.parse(raw) as Candidate[];
+            return all.slice(pageNum * PAGE_SIZE, (pageNum + 1) * PAGE_SIZE);
+          }
+        } catch { /* ignore */ }
+        return [];
       }
-      const { data, error } = await query;
-      if (error) throw error;
-      const mapped = (data ?? []).map(mapRow);
-      if (pageParam === 0) {
-        try { localStorage.setItem(cacheKey(targetGenders), JSON.stringify(mapped)); } catch { /* ignore */ }
-      }
-      return mapped;
     },
     initialData: cached
       ? { pages: [cached], pageParams: [0] }
